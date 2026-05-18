@@ -1,4 +1,4 @@
-import Chat from "../models/chatModel.js";
+import Chat from "../Models/chatModel.js";
 
 export const createChat = async (req, res) => {
     const { firstId, secondId } = req.body;

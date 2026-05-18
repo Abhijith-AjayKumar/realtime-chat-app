@@ -1,4 +1,4 @@
-import Message from "../models/messageModel.js";
+import Message from "../Models/messageModel.js";
 
 export const createMessage = async (req, res) => {
     const { chatId, senderId, text } = req.body;
