@@ -3,7 +3,7 @@ import { Server } from "socket.io";
 const initSocketServer = (expressServer) => {
     const io = new Server(expressServer, {
         cors: {
-            origin: "http://localhost:5173", // URL of your frontend
+            origin: process.env.CLIENT_URL || "http://localhost:5173",
             methods: ["GET", "POST"]
         },
     });

@@ -20,7 +20,7 @@ export const ChatContextProvider = ({ children, user }) => {
     // 1. INITIALIZE WEB-SOCKET ENGINE CONNECTION
     useEffect(() => {
         // Points to your backend server port (assumed 5000 based on standard setups)
-        const newSocket = io("http://localhost:5000");
+        const newSocket = io(import.meta.env.VITE_BACKEND_URL || "http://localhost:5000");
         setSocket(newSocket);
 
         return () => {

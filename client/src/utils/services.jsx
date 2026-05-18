@@ -1,4 +1,4 @@
-export const baseUrl = "http://localhost:5000/app";
+export const baseUrl = (import.meta.env.VITE_BACKEND_URL || "http://localhost:5000") + "/app";
 
 export const postRequest = async (url, body) => {
     const response = await fetch(url, {
