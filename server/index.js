@@ -4,9 +4,9 @@ import mongoose from "mongoose";
 import dotenv from "dotenv";
 
 // Route Imports
-import userRoute from "./routes/userRoute.js";
-import chatRoute from "./routes/chatRoute.js";
-import messageRoute from "./routes/messageRoute.js";
+import userRoute from "./Routes/userRoute.js";
+import chatRoute from "./Routes/chatRoute.js";
+import messageRoute from "./Routes/messageRoute.js";
 
 // Clean Module Socket Import
 import initSocketServer from "../socket/index.js";
