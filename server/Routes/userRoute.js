@@ -7,7 +7,7 @@ import {
     updateProfile, 
     toggleBlockUser, 
     unblockMultipleUsers 
-} from "../controllers/userController.js";
+} from "../Controllers/userController.js";
 
 const router = express.Router();
 

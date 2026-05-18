@@ -9,7 +9,7 @@ import {
     leaveGroupChat,
     deleteGroupChat,
     demoteSubAdmin
-} from "../controllers/chatController.js";
+} from "../Controllers/chatController.js";
 
 const router = express.Router();
 
