@@ -7,15 +7,13 @@ export const ChatContext = createContext();
 export const ChatContextProvider = ({ children, user }) => {
     const [userChats, setUserChats] = useState([]);
     const [isUserChatsLoading, setIsUserChatsLoading] = useState(false);
-    const [userChatsError, setUserChatsError] = useState(null);
     const [currentChat, setCurrentChat] = useState(null);
     const [messages, setMessages] = useState([]);
     const [isMessagesLoading, setIsMessagesLoading] = useState(false);
-    const [messagesError, setMessagesError] = useState(null);
     const [allUsers, setAllUsers] = useState([]);
     const [onlineUsers, setOnlineUsers] = useState([]);
+    const [notifications, setNotifications] = useState([]); // NEW: Unread message tracker
     
-    // Socket State Engine
     const [socket, setSocket] = useState(null);
 
     // 1. INITIALIZE WEB-SOCKET ENGINE CONNECTION
@@ -31,32 +29,39 @@ export const ChatContextProvider = ({ children, user }) => {
     // 2. REGISTER USER PATH AND JOIN ACTIVE ROOMS
     useEffect(() => {
         if (!socket || !user?._id) return;
-
         socket.emit("registerUser", user._id);
-
         userChats?.forEach((chat) => {
             socket.emit("joinRoom", chat._id);
         });
-
     }, [socket, user, userChats]);
 
-    // 3. LISTEN FOR INBOUND LIVE MESSAGES & ONLINE USERS
+    // 3. LISTEN FOR ONLINE USERS (Isolated to prevent gray-dot glitch)
+    useEffect(() => {
+        if (!socket) return;
+        socket.on("getOnlineUsers", (res) => {
+            setOnlineUsers(res);
+        });
+        return () => {
+            socket.off("getOnlineUsers");
+        };
+    }, [socket]);
+
+    // 4. LISTEN FOR INBOUND LIVE MESSAGES & NOTIFICATIONS
     useEffect(() => {
         if (!socket) return;
 
         socket.on("receiveMessage", (newMessage) => {
-            // Only update active screen if it matches the current chat ID
-            if (currentChat?._id !== newMessage.chatId) return;
-            setMessages((prev) => [...prev, newMessage]);
-        });
-
-        socket.on("getOnlineUsers", (res) => {
-            setOnlineUsers(res);
+            if (currentChat?._id === newMessage.chatId) {
+                // Chat is actively open -> Show message immediately
+                setMessages((prev) => [...prev, newMessage]);
+            } else {
+                // Chat is closed -> Send to unread notifications badge!
+                setNotifications((prev) => [newMessage, ...prev]);
+            }
         });
 
         return () => {
             socket.off("receiveMessage");
-            socket.off("getOnlineUsers");
         };
     }, [socket, currentChat]);
 
@@ -69,7 +74,7 @@ export const ChatContextProvider = ({ children, user }) => {
         getUsers();
     }, [user]);
 
-    // Fetch active conversations for the logged-in user
+    // Fetch active conversations
     useEffect(() => {
         const getUserChats = async () => {
             if (user?._id) {
@@ -94,6 +99,12 @@ export const ChatContextProvider = ({ children, user }) => {
         };
         getMessages();
     }, [currentChat]);
+
+    // Click handler that opens the chat AND clears the unread notifications badge
+    const updateCurrentChat = useCallback((chat) => {
+        setCurrentChat(chat);
+        setNotifications((prev) => prev.filter((n) => n.chatId !== chat._id));
+    }, []);
 
     // Send text message handler
     const sendTextMessage = useCallback(async (textMessage, sender, currentChatId, setTextMessage) => {
@@ -125,8 +136,6 @@ export const ChatContextProvider = ({ children, user }) => {
             if (socket) socket.emit("joinRoom", response._id);
         }
     }, [socket]);
-
-    const updateCurrentChat = useCallback((chat) => setCurrentChat(chat), []);
 
     const deleteChat = useCallback(async (chatId) => {
         const response = await deleteRequest(`${baseUrl}/chats/${chatId}`);
@@ -184,7 +193,7 @@ export const ChatContextProvider = ({ children, user }) => {
     }, [user]);
 
     return (
-        <ChatContext.Provider value={{ onlineUsers, userChats, isUserChatsLoading, userChatsError, currentChat, messages, isMessagesLoading, messagesError, sendTextMessage, createChat, updateCurrentChat, deleteChat, clearMessages, allUsers, createGroupChat, addMembersToGroup, promoteToSubAdmin, demoteSubAdmin, leaveGroupChat }}>
+        <ChatContext.Provider value={{ onlineUsers, notifications, userChats, isUserChatsLoading, currentChat, messages, isMessagesLoading, sendTextMessage, createChat, updateCurrentChat, deleteChat, clearMessages, allUsers, createGroupChat, addMembersToGroup, promoteToSubAdmin, demoteSubAdmin, leaveGroupChat }}>
             {children}
         </ChatContext.Provider>
     );
