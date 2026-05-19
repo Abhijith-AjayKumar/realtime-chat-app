@@ -1,184 +1,141 @@
-import { useContext, useState } from "react";
+import { useContext, useState, useRef, useEffect } from "react";
 import { AuthContext } from "../context/AuthContext";
 import { ChatContext } from "../context/ChatContext";
-import { useFetchRecipientUser } from "../hooks/useFetchRecipient";
-import { Stack, Form, Button, Badge } from "react-bootstrap";
-import { baseUrl, getRequest } from "../utils/services";
+import { Stack, Form, Button } from "react-bootstrap";
+import moment from "moment";
 
 const ChatBox = () => {
-    const { user, toggleBlock } = useContext(AuthContext);
-    const { currentChat, messages, isMessagesLoading, sendTextMessage, updateCurrentChat, deleteChat, clearMessages, addMembersToGroup, promoteToSubAdmin, demoteSubAdmin, leaveGroupChat } = useContext(ChatContext);
-    const { recipientUser } = useFetchRecipientUser(currentChat, user);
-    
+    const { user } = useContext(AuthContext);
+    const { currentChat, messages, isMessagesLoading, sendTextMessage, allUsers, onlineUsers } = useContext(ChatContext);
     const [textMessage, setTextMessage] = useState("");
-    const [inviteUserIdInput, setInviteUserIdInput] = useState("");
-    const { allUsers } = useContext(ChatContext);
+    const scrollRef = useRef();
 
-    if (!currentChat) return (
-        <div className="d-flex align-items-center justify-content-center card-material" style={{ minHeight: "65vh", width: "100%" }}>
-            <p className="m-0" style={{ color: "var(--text-secondary)", fontWeight: "500" }}>No conversation selected yet...</p>
-        </div>
-    );
-    
-    if (isMessagesLoading) return (
-        <div className="d-flex align-items-center justify-content-center card-material" style={{ minHeight: "65vh", width: "100%" }}>
-            <p className="m-0" style={{ color: "var(--text-secondary)" }}>Loading chat data stream...</p>
-        </div>
-    );
+    useEffect(() => {
+        scrollRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, [messages]);
 
-    const isGroup = currentChat?.isGroup;
-    const isMainAdmin = isGroup && currentChat?.groupAdmin === user?._id;
-    const isSubAdmin = isGroup && currentChat?.subAdmins?.includes(user?._id);
-    const canManageMembers = isMainAdmin || isSubAdmin;
+    if (!currentChat) {
+        return (
+            <div className="w-100 d-flex justify-content-center align-items-center card-material text-muted text-center" style={{ height: "65vh" }}>
+                <div>
+                    <h3 className="fs-1 mb-2">💬</h3>
+                    <p>No conversation selected yet...</p>
+                </div>
+            </div>
+        );
+    }
 
-    const isBlocked = !isGroup && user?.blockedUsers?.includes(recipientUser?._id);
-    const chatTitle = isGroup ? currentChat?.groupName : recipientUser?.name;
+    if (isMessagesLoading) {
+        return <p className="text-center text-white my-5">Loading deep data logs...</p>;
+    }
 
-    const handleInviteUserSubmit = async (e) => {
-        e.preventDefault();
-        if (!inviteUserIdInput.trim()) return;
-
-        const response = await getRequest(`${baseUrl}/users/search/${inviteUserIdInput.trim()}`);
-        if (response.error) return alert("User handle not found.");
-        if (currentChat.members.includes(response._id)) return alert("User is already inside this group.");
-
-        addMembersToGroup(currentChat._id, [response._id]);
-        setInviteUserIdInput("");
-    };
+    // Resolve details for Direct Message recipient status tracking
+    const recipientId = currentChat?.members?.find((id) => id !== user?._id);
+    const recipient = allUsers?.find((u) => u._id === recipientId);
+    const isRecipientOnline = onlineUsers?.some((u) => u.userId === recipientId);
 
     return (
-        <Stack className="card-material" style={{ width: "100%", height: "75vh", display: "flex", flexDirection: "column" }}>
+        <Stack gap={4} className="chat-container card-material p-3" style={{ height: "75vh", position: "relative" }}>
             
-            {/* --- HEADER CONTROLS --- */}
-            <div className="chat-header pb-2" style={{ borderBottom: "1px solid #2b2b2b" }}>
-                <div className="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-2 mb-2">
-                    <div className="d-flex align-items-center gap-1">
-                        <Button variant="outline-secondary" size="sm" onClick={() => updateCurrentChat(null)} style={{ border: "none", color: "var(--text-secondary)" }}>
-                            &larr; <span className="d-none d-sm-inline">Back</span>
-                        </Button>
-                        <strong style={{ color: "var(--text-primary)", fontSize: "1.15rem" }}>{chatTitle}</strong>
+            {/* --- TOP HEADER ROW BAR --- */}
+            <div className="d-flex align-items-center justify-content-between pb-3 border-bottom border-secondary">
+                <div className="d-flex align-items-center gap-3">
+                    <div className="position-relative">
+                        <div className="d-flex justify-content-center align-items-center rounded-circle text-white fw-bold" style={{ width: "40px", height: "40px", backgroundColor: currentChat.isGroup ? "var(--accent-purple)" : "var(--accent-blue)" }}>
+                            {currentChat.isGroup ? currentChat.groupName?.charAt(0).toUpperCase() : recipient?.name?.charAt(0).toUpperCase()}
+                        </div>
+                        {!currentChat.isGroup && (
+                            <span 
+                                className="position-absolute bottom-0 end-0 rounded-circle" 
+                                style={{ 
+                                    width: "10px", 
+                                    height: "10px", 
+                                    backgroundColor: isRecipientOnline ? "#22c55e" : "#64748b",
+                                    border: "2px solid var(--bg-surface)"
+                                }}
+                            />
+                        )}
                     </div>
-
-                    <div className="d-flex flex-wrap gap-1">
-                        {!isGroup ? (
-                            <>
-                                <Button variant="outline-warning" size="sm" className="py-1 px-3" onClick={() => clearMessages(currentChat?._id)}>Clear Log</Button>
-                                <Button variant={isBlocked ? "secondary" : "outline-danger"} size="sm" className="py-1 px-3" onClick={() => toggleBlock(recipientUser?._id)}>{isBlocked ? "Unblock" : "Block"}</Button>
-                                <Button variant="outline-danger" size="sm" className="py-1 px-3" onClick={() => deleteChat(currentChat?._id)}>Unfriend</Button>
-                            </>
-                        ) : (
-                            isMainAdmin ? (
-                                <Button variant="danger" size="sm" className="py-1 px-3" onClick={() => leaveGroupChat(currentChat._id)}>Delete Group</Button>
-                            ) : (
-                                <Button variant="outline-danger" size="sm" className="py-1 px-3" onClick={() => leaveGroupChat(currentChat._id)}>Leave Group</Button>
-                            )
+                    <div>
+                        <h5 className="m-0 text-white fw-bold">{currentChat.isGroup ? currentChat.groupName : recipient?.name}</h5>
+                        {!currentChat.isGroup && (
+                            <small style={{ color: isRecipientOnline ? "#22c55e" : "var(--text-secondary)", fontSize: "0.8rem", fontWeight: "500" }}>
+                                {isRecipientOnline ? "• Active Now" : "Offline"}
+                            </small>
                         )}
                     </div>
                 </div>
 
-                {/* --- PILLED ROSTER UTILITY --- */}
-                {isGroup && (
-                    <Stack gap={2} className="p-2 rounded-4 mt-2" style={{ fontSize: "0.8rem", backgroundColor: "var(--bg-main)" }}>
-                        <div className="d-flex flex-wrap align-items-center gap-1">
-                            <span style={{ color: "var(--text-secondary)", marginRight: "4px" }}>Roster:</span>
-                            {allUsers?.filter(u => currentChat.members.includes(u._id)).map(member => {
-                                const mIsAdmin = currentChat.groupAdmin === member._id;
-                                const mIsSub = currentChat.subAdmins.includes(member._id);
-                                
-                                return (
-                                    <Badge 
-                                        key={member._id} 
-                                        bg={mIsAdmin ? "danger" : mIsSub ? "warning" : "secondary"}
-                                        className="p-2 m-1 rounded-pill"
-                                        style={{ cursor: isMainAdmin && !mIsAdmin ? "pointer" : "default" }}
-                                        onClick={() => {
-                                            if (!isMainAdmin || mIsAdmin) return;
-                                            if (mIsSub) demoteSubAdmin(currentChat._id, member._id);
-                                            else {
-                                                if (currentChat.subAdmins.length >= 3) return alert("Limit of 3 sub-admins reached.");
-                                                promoteToSubAdmin(currentChat._id, member._id);
-                                            }
-                                        }}
-                                    >
-                                        {member.name}{mIsAdmin && " ★"}{mIsSub && " 🛠"}
-                                    </Badge>
-                                );
-                            })}
-                        </div>
-
-                        {canManageMembers && (
-                            <Form onSubmit={handleInviteUserSubmit} className="mt-1">
-                                <Stack direction="horizontal" gap={2}>
-                                    <Form.Control 
-                                        type="text"
-                                        size="sm"
-                                        placeholder="Invite via unique id handle..."
-                                        value={inviteUserIdInput}
-                                        onChange={(e) => setInviteUserIdInput(e.target.value)}
-                                        style={{ backgroundColor: "var(--bg-input)", borderColor: "#3f3f3f" }}
-                                    />
-                                    <Button type="submit" size="sm" variant="outline-success" className="px-3">Invite</Button>
-                                </Stack>
-                            </Form>
-                        )}
-                    </Stack>
-                )}
+                {/* Header Actions Buttons Drawer */}
+                <div className="d-flex gap-2">
+                    <Button size="sm" variant="outline-warning" className="rounded-pill px-3 py-1" style={{ fontSize: "0.8rem" }}>Clear Log</Button>
+                    <Button size="sm" variant="outline-danger" className="rounded-pill px-3 py-1" style={{ fontSize: "0.8rem" }}>Block</Button>
+                </div>
             </div>
 
-            {/* --- TIMELINE MESSAGES LOG --- */}
-            <Stack gap={2} className="messages flex-grow-1 my-3" style={{ overflowY: "auto", paddingRight: "5px" }}>
-                {messages?.map((message, index) => {
-                    const senderName = allUsers?.find(u => u._id === message?.senderId)?.name || "User";
-                    const isMe = message?.senderId === user?._id;
+            {/* --- CORE LIVE STREAM MESSAGE MESSAGES BOX --- */}
+            <Stack gap={3} className="messages-box px-2" style={{ overflowY: "auto", flexGrow: 1 }}>
+                {messages && messages.map((msg, index) => {
+                    const isMyMessage = msg.senderId === user?._id;
                     return (
                         <div 
                             key={index} 
-                            style={{
-                                alignSelf: isMe ? "flex-end" : "flex-start",
-                                backgroundColor: isMe ? "var(--accent-blue)" : "var(--bg-card-active)",
-                                color: "white",
-                                padding: "10px 16px",
-                                borderRadius: "var(--radius-bubble)",
-                                maxWidth: "80%",
-                                wordBreak: "break-word"
-                            }}
+                            ref={scrollRef}
+                            className={`d-flex flex-column ${isMyMessage ? "align-items-end" : "align-items-start"}`}
                         >
-                            {isGroup && !isMe && (
-                                <small style={{ display: "block", color: "#b388ff", fontWeight: "bold", fontSize: "0.7rem", marginBottom: "2px" }}>
-                                    {senderName}
-                                </small>
-                            )}
-                            <span style={{ fontSize: "0.95rem" }}>{message.text}</span>
+                            <div 
+                                className="px-3 py-2 text-white shadow-sm"
+                                style={{ 
+                                    backgroundColor: isMyMessage ? "var(--accent-blue, #0d6efd)" : "#262626",
+                                    borderRadius: isMyMessage ? "20px 20px 4px 20px" : "20px 20px 20px 4px",
+                                    fontSize: "0.95rem",
+                                    maxWidth: "75%", 
+                                    width: "fit-content"
+                                }}
+                            >
+                                <span>{msg.text}</span>
+                                
+                                {/* Info Metadata Strip (Time + Receipt Status) */}
+                                <div className="d-flex align-items-center gap-1 mt-1" style={{ 
+                                    fontSize: "0.7rem", 
+                                    opacity: 0.75,
+                                    justifyContent: isMyMessage ? "flex-end" : "flex-start" 
+                                }}>
+                                    <span>{moment(msg.createdAt).format("h:mm A")}</span>
+                                    
+                                    {isMyMessage && (
+                                        <span style={{ color: isRecipientOnline ? "#60a5fa" : "#94a3b8", fontSize: "0.85rem", marginLeft: "2px" }}>
+                                            {isRecipientOnline ? "✓✓" : "✓"}
+                                        </span>
+                                    )}
+                                </div>
+                            </div>
                         </div>
                     );
                 })}
             </Stack>
 
-            {/* --- HIGH-VISIBILITY CAPSULE TEXT INPUT HUB --- */}
-            <Stack direction="horizontal" gap={2} className="chat-input mt-auto pt-2" style={{ borderTop: "1px solid #2b2b2b" }}>
-                <Form.Control 
-                    type="text" 
-                    placeholder={isBlocked ? "Unblock this user to type messages." : "Type a message..."} 
-                    value={textMessage}
-                    onChange={(e) => setTextMessage(e.target.value)}
-                    disabled={isBlocked} 
-                    onKeyDown={(e) => {
-                        if (e.key === "Enter" && !isBlocked) {
-                            e.preventDefault();
-                            sendTextMessage(textMessage, user, currentChat?._id, setTextMessage);
-                        }
-                    }}
-                    style={{ backgroundColor: "var(--bg-input)", color: "var(--text-primary)", borderColor: "#3f3f3f" }}
-                />
-                <Button 
-                    variant="primary" 
-                    onClick={() => sendTextMessage(textMessage, user, currentChat?._id, setTextMessage)}
-                    disabled={isBlocked}
-                    style={{ borderRadius: "50% !important", width: "42px", height: "42px", display: "flex", alignItems: "center", justifyContent: "center", padding: "0" }}
-                >
-                    ➔
-                </Button>
-            </Stack>
+            {/* --- FOOTER SEND COMPONENT DRAWER --- */}
+            <Form onSubmit={(e) => { e.preventDefault(); sendTextMessage(textMessage, user, currentChat._id, setTextMessage); }} className="mt-auto">
+                <Stack direction="horizontal" gap={2}>
+                    <Form.Control
+                        type="text"
+                        placeholder="Type a message..."
+                        value={textMessage}
+                        onChange={(e) => setTextMessage(e.target.value)}
+                        style={{
+                            backgroundColor: "var(--bg-main)",
+                            color: "#ffffff",
+                            borderColor: "#2b2b2b",
+                            borderRadius: "50px",
+                            padding: "0.65rem 1.4rem"
+                        }}
+                    />
+                    <Button type="submit" variant="primary" className="rounded-circle d-flex justify-content-center align-items-center" style={{ width: "44px", height: "44px", backgroundColor: "var(--accent-blue)", border: "none" }}>
+                        ➔
+                    </Button>
+                </Stack>
+            </Form>
         </Stack>
     );
 };

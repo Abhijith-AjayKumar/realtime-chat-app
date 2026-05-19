@@ -1,53 +1,56 @@
-import { Stack } from "react-bootstrap";
-import { useFetchRecipientUser } from "../hooks/useFetchRecipient";
+import { useContext } from "react";
+import { ChatContext } from "../context/ChatContext";
 
 const UserChat = ({ chat, user }) => {
-    const { recipientUser } = useFetchRecipientUser(chat, user);
+    const { allUsers, onlineUsers } = useContext(ChatContext);
 
-    const isGroup = chat?.isGroup;
-    const displayName = isGroup ? chat?.groupName : recipientUser?.name;
-    const avatarLetter = displayName ? displayName.charAt(0).toUpperCase() : "?";
+    // Identify the other user in the DM conversation
+    const recipientId = chat?.members?.find((id) => id !== user?._id);
+    const recipient = allUsers?.find((u) => u._id === recipientId);
 
-    return (
-        <Stack 
-            direction="horizontal" 
-            gap={3} 
-            className="p-2 mb-1 justify-content-between align-items-center" 
-            role="button"
-            style={{ 
-                cursor: "pointer", 
-                borderRadius: "var(--radius-pill)", // Pill shape selection strip
-                backgroundColor: "var(--bg-input)",
-                transition: "background-color 0.15s ease",
-                border: "1px solid rgba(255,255,255,0.03)"
-            }}
-            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "var(--bg-card-hover)"}
-            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "var(--bg-input)"}
-        >
-            <div className="d-flex align-items-center gap-3 overflow-hidden w-100 ps-1">
-                <div 
-                    className="d-flex justify-content-center align-items-center flex-shrink-0" 
-                    style={{ 
-                        height: "40px", 
-                        width: "40px", 
-                        borderRadius: "50%", 
-                        backgroundColor: isGroup ? "var(--accent-purple)" : "var(--accent-blue)", 
-                        color: "white", 
-                        fontWeight: "bold"
-                    }}
-                >
-                    {avatarLetter}
+    // Determine if recipient is currently online
+    const isOnline = onlineUsers?.some((u) => u.userId === recipientId);
+
+    if (chat.isGroup) {
+        return (
+            <div className="d-flex align-items-center gap-3 p-2 rounded-3 text-white mb-2" style={{ backgroundColor: "var(--bg-main)", cursor: "pointer" }}>
+                <div className="d-flex justify-content-center align-items-center bg-purple text-white rounded-circle" style={{ width: "45px", height: "45px", fontWeight: "bold", backgroundColor: "var(--accent-purple)" }}>
+                    {chat.groupName?.charAt(0).toUpperCase()}
                 </div>
-                <div className="text-content text-truncate w-100">
-                    <div style={{ color: "var(--text-primary)", fontWeight: "500", fontSize: "0.95rem" }} className="text-truncate">
-                        {displayName}
-                    </div>
-                    <div style={{ color: "var(--text-muted)", fontSize: "0.78rem" }} className="text-truncate">
-                        {isGroup ? "Group Chat Room" : "Tap to open window"}
-                    </div>
+                <div>
+                    <div className="fw-bold">{chat.groupName}</div>
+                    <small style={{ color: "var(--text-secondary)" }}>Group Chat Room</small>
                 </div>
             </div>
-        </Stack>
+        );
+    }
+
+    return (
+        <div className="d-flex align-items-center gap-3 p-2 rounded-3 text-white mb-2 position-relative" style={{ backgroundColor: "var(--bg-main)", cursor: "pointer" }}>
+            {/* Avatar with Status Badge Overlay */}
+            <div className="position-relative">
+                <div className="d-flex justify-content-center align-items-center text-white rounded-circle" style={{ width: "45px", height: "45px", fontWeight: "bold", backgroundColor: "var(--accent-blue)" }}>
+                    {recipient?.name?.charAt(0).toUpperCase()}
+                </div>
+                <span 
+                    className="position-absolute bottom-0 end-0 rounded-circle" 
+                    style={{ 
+                        width: "12px", 
+                        height: "12px", 
+                        backgroundColor: isOnline ? "#22c55e" : "#64748b",
+                        border: "2px solid var(--bg-surface)",
+                        boxShadow: isOnline ? "0 0 8px #22c55e" : "none"
+                    }}
+                />
+            </div>
+            
+            <div className="flex-grow-1">
+                <div className="fw-bold">{recipient?.name || "Loading..."}</div>
+                <small style={{ color: "var(--text-secondary)" }}>
+                    {isOnline ? "Online" : "Tap to open window"}
+                </small>
+            </div>
+        </div>
     );
 };
 

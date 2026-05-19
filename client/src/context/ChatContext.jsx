@@ -1,6 +1,6 @@
 import { createContext, useState, useEffect, useCallback } from "react";
 import { baseUrl, getRequest, postRequest, putRequest, deleteRequest } from "../utils/services";
-import { io } from "socket.io-client"; // Real-time client pipeline import
+import { io } from "socket.io-client";
 
 export const ChatContext = createContext();
 
@@ -13,13 +13,13 @@ export const ChatContextProvider = ({ children, user }) => {
     const [isMessagesLoading, setIsMessagesLoading] = useState(false);
     const [messagesError, setMessagesError] = useState(null);
     const [allUsers, setAllUsers] = useState([]);
+    const [onlineUsers, setOnlineUsers] = useState([]);
     
     // Socket State Engine
     const [socket, setSocket] = useState(null);
 
     // 1. INITIALIZE WEB-SOCKET ENGINE CONNECTION
     useEffect(() => {
-        // Points to your backend server port (assumed 5000 based on standard setups)
         const newSocket = io(import.meta.env.VITE_BACKEND_URL || "http://localhost:5000");
         setSocket(newSocket);
 
@@ -32,28 +32,31 @@ export const ChatContextProvider = ({ children, user }) => {
     useEffect(() => {
         if (!socket || !user?._id) return;
 
-        // Tell socket server who we are
         socket.emit("registerUser", user._id);
 
-        // Auto-join socket rooms for group conversations or private logs
         userChats?.forEach((chat) => {
             socket.emit("joinRoom", chat._id);
         });
 
     }, [socket, user, userChats]);
 
-    // 3. LISTEN FOR INBOUND LIVE MESSAGES
+    // 3. LISTEN FOR INBOUND LIVE MESSAGES & ONLINE USERS
     useEffect(() => {
         if (!socket) return;
 
         socket.on("receiveMessage", (newMessage) => {
-            // Guard clause: Only append message onto screen if it matches the actively open conversation box
+            // Only update active screen if it matches the current chat ID
             if (currentChat?._id !== newMessage.chatId) return;
             setMessages((prev) => [...prev, newMessage]);
         });
 
+        socket.on("getOnlineUsers", (res) => {
+            setOnlineUsers(res);
+        });
+
         return () => {
             socket.off("receiveMessage");
+            socket.off("getOnlineUsers");
         };
     }, [socket, currentChat]);
 
@@ -92,7 +95,7 @@ export const ChatContextProvider = ({ children, user }) => {
         getMessages();
     }, [currentChat]);
 
-    // Send text message handler updated with real-time emitter triggers
+    // Send text message handler
     const sendTextMessage = useCallback(async (textMessage, sender, currentChatId, setTextMessage) => {
         if (!textMessage.trim()) return;
 
@@ -106,11 +109,10 @@ export const ChatContextProvider = ({ children, user }) => {
             setMessages((prev) => [...prev, response]);
             setTextMessage("");
 
-            // LIVE SOCKET EMIT: Broadcast this message data block down the wire instantly
             if (socket) {
                 socket.emit("sendMessage", {
                     ...response,
-                    roomMembers: currentChat?.members // Backend reads this to distribute across specific IDs
+                    roomMembers: currentChat?.members 
                 });
             }
         }
@@ -182,7 +184,7 @@ export const ChatContextProvider = ({ children, user }) => {
     }, [user]);
 
     return (
-        <ChatContext.Provider value={{ userChats, isUserChatsLoading, userChatsError, currentChat, messages, isMessagesLoading, messagesError, sendTextMessage, createChat, updateCurrentChat, deleteChat, clearMessages, allUsers, createGroupChat, addMembersToGroup, promoteToSubAdmin, demoteSubAdmin, leaveGroupChat }}>
+        <ChatContext.Provider value={{ onlineUsers, userChats, isUserChatsLoading, userChatsError, currentChat, messages, isMessagesLoading, messagesError, sendTextMessage, createChat, updateCurrentChat, deleteChat, clearMessages, allUsers, createGroupChat, addMembersToGroup, promoteToSubAdmin, demoteSubAdmin, leaveGroupChat }}>
             {children}
         </ChatContext.Provider>
     );
