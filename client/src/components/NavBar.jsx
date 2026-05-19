@@ -1,11 +1,15 @@
 import { useContext } from "react";
 import { Container, Nav, Navbar, Stack, Button } from "react-bootstrap";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 
 const NavBar = () => {
     const { user } = useContext(AuthContext);
     const navigate = useNavigate();
+    const location = useLocation();
+
+    // Check if the current URL path is the profile view
+    const isProfilePage = location.pathname === "/profile";
 
     return (
         <Navbar className="mb-4" style={{ backgroundColor: "var(--bg-surface)", height: "3.75rem" }}>
@@ -25,15 +29,23 @@ const NavBar = () => {
                 
                 <Nav>
                     <Stack direction="horizontal" gap={3}>
-                        {/* IF LOGGED IN: Show dedicated Profile Button */}
+                        {/* IF LOGGED IN: Show dynamic routing toggle button */}
                         {user && (
                             <Button 
-                                variant="outline-primary" 
+                                variant={isProfilePage ? "primary" : "outline-primary"} 
                                 size="sm" 
-                                onClick={() => navigate("/profile")}
-                                style={{ color: "var(--accent-blue)", borderColor: "var(--accent-blue)" }}
+                                onClick={() => navigate(isProfilePage ? "/" : "/profile")}
+                                style={{ 
+                                    color: isProfilePage ? "#ffffff" : "var(--accent-blue)", 
+                                    borderColor: "var(--accent-blue)",
+                                    backgroundColor: isProfilePage ? "var(--accent-blue)" : "transparent",
+                                    borderRadius: "50px",
+                                    padding: "0.4rem 1.2rem",
+                                    fontSize: "0.85rem",
+                                    fontWeight: "500"
+                                }}
                             >
-                                Profile
+                                {isProfilePage ? "💬 Active Chats" : "👤 Profile"}
                             </Button>
                         )}
 

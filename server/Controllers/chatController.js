@@ -5,13 +5,15 @@ export const createChat = async (req, res) => {
 
     try {
         const chat = await Chat.findOne({
-            members: { $all: [firstId, secondId] },
+            members: { $all: [firstId, secondId], $size: 2 },
+            isGroup: { $ne: true } 
         });
 
         if (chat) return res.status(200).json(chat);
 
         const newChat = new Chat({
             members: [firstId, secondId],
+            isGroup: false
         });
 
         const response = await newChat.save();

@@ -5,8 +5,11 @@ import { Form, Button, Stack, Alert } from "react-bootstrap";
 import { useNavigate } from "react-router-dom"; 
 
 const Profile = () => {
-    const { user, updateProfile, profileError, profileSuccess, isProfileLoading, logoutUser, unblockMultiple } = useContext(AuthContext);
-    const { allUsers } = useContext(ChatContext);
+    // 1. We keep your Auth Context for profile updates and logout
+    const { user, updateProfile, profileError, profileSuccess, isProfileLoading, logoutUser } = useContext(AuthContext);
+    
+    // 2. We use the Chat Context for the LIVE blocked list, all users, and the bulk unblock action
+    const { allUsers, blockedUsersList, unblockSelectedUsers } = useContext(ChatContext);
     const navigate = useNavigate(); 
 
     const [formData, setFormData] = useState({
@@ -36,7 +39,8 @@ const Profile = () => {
     };
 
     const handleUnblockSubmit = () => {
-        unblockMultiple(selectedBlocks);
+        // Fire the function from ChatContext, passing the current user ID and the array of checked IDs
+        unblockSelectedUsers(user._id, selectedBlocks);
         setSelectedBlocks([]); 
     };
 
@@ -44,10 +48,10 @@ const Profile = () => {
 
     if (!user) return null;
 
-    const blockedUserDetails = allUsers?.filter(u => user?.blockedUsers?.includes(u._id)) || [];
+    // Use the live blockedUsersList from ChatContext instead of the static user.blockedUsers
+    const blockedUserDetails = allUsers?.filter(u => blockedUsersList?.includes(u._id)) || [];
 
     return (
-        // EXACT SAME WRAPPER AS CHATBOX.JSX!
         <Stack gap={4} className="chat-box" style={{ backgroundColor: "var(--bg-surface)", borderRadius: "10px", padding: "20px", width: "100%", minHeight: "75vh", maxHeight: "75vh", overflowY: "auto", display: "flex", flexDirection: "column" }}>
             
             <div className="chat-header d-flex justify-content-between align-items-center" style={{ borderBottom: "1px solid #3f3f3f", paddingBottom: "10px" }}>
@@ -101,7 +105,7 @@ const Profile = () => {
                 </Stack>
             </Form>
 
-            {/* UPGRADED BLOCKED USERS SECTION */}
+            {/* RESTORED & UPGRADED BLOCKED USERS SECTION */}
             <hr className="border-secondary mt-3" />
             <h4 style={{ color: "var(--text-primary)", marginBottom: "10px" }}>Blocked Users</h4>
             
@@ -124,7 +128,7 @@ const Profile = () => {
                         >
                             <div className="d-flex align-items-center gap-3">
                                 {/* AVATAR CIRCLE */}
-                                <div style={{ height: "40px", width: "40px", borderRadius: "50%", backgroundColor: "var(--accent-blue)", display: "flex", justifyContent: "center", alignItems: "center", color: "white", fontWeight: "bold", fontSize: "1.2rem" }}>
+                                <div style={{ height: "40px", width: "40px", borderRadius: "50%", backgroundColor: "var(--accent-danger)", display: "flex", justifyContent: "center", alignItems: "center", color: "white", fontWeight: "bold", fontSize: "1.2rem" }}>
                                     {bu.name.charAt(0).toUpperCase()}
                                 </div>
                                 <strong style={{ color: "var(--text-primary)" }}>{bu.name}</strong>

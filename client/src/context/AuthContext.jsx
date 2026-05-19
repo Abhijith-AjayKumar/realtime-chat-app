@@ -29,7 +29,7 @@ export const AuthContextProvider = ({ children }) => {
         setRegisterInfo((prevInfo) => ({ ...prevInfo, ...info }));
     }, []);
 
-   const registerUser = useCallback(async (e) => {
+    const registerUser = useCallback(async (e) => {
         e.preventDefault(); 
         setIsRegisterLoading(true);
         setRegisterError(null);
@@ -39,7 +39,6 @@ export const AuthContextProvider = ({ children }) => {
         
         if (response.error) {
             setRegisterError(response.message);
-          
             setTimeout(() => setRegisterError(null), 3000);
             return; 
         }
@@ -68,7 +67,6 @@ export const AuthContextProvider = ({ children }) => {
         
         localStorage.setItem("user", JSON.stringify(response));
         setUser(response);
-        
         window.location.href = "/";
     }, [loginInfo]);
 
@@ -88,18 +86,26 @@ export const AuthContextProvider = ({ children }) => {
         setTimeout(() => setProfileSuccess(null), 3000);
     }, []);
 
+    // NEW: Function to sync the block list to localStorage and State
+    const updateUserBlockedList = useCallback((newList) => {
+        if (user) {
+            const updatedUser = { ...user, blockedUsers: newList };
+            setUser(updatedUser);
+            localStorage.setItem("user", JSON.stringify(updatedUser));
+        }
+    }, [user]);
+
     const toggleBlock = useCallback(async (targetUserId) => {
-        const response = await putRequest(`${baseUrl}/users/block`, {
+        const response = await putRequest(`${baseUrl}/users/toggle-block`, {
             currentUserId: user._id,
             targetUserId
         });
         
         if (response.error) return console.log(response.error);
         
-        const updatedUser = { ...user, blockedUsers: response };
-        setUser(updatedUser);
-        localStorage.setItem("user", JSON.stringify(updatedUser));
-    }, [user]);
+        // Use the sync function to persist state
+        updateUserBlockedList(response);
+    }, [user, updateUserBlockedList]);
 
     const unblockMultiple = useCallback(async (targetUserIds) => {
         const response = await putRequest(`${baseUrl}/users/unblock-multiple`, {
@@ -109,15 +115,13 @@ export const AuthContextProvider = ({ children }) => {
         
         if (response.error) return console.log(response.error);
 
-        const updatedUser = { ...user, blockedUsers: response };
-        setUser(updatedUser);
-        localStorage.setItem("user", JSON.stringify(updatedUser));
-    }, [user]);
+        // Use the sync function to persist state
+        updateUserBlockedList(response);
+    }, [user, updateUserBlockedList]);
 
     const logoutUser = useCallback(() => {
         localStorage.removeItem("user");
         setUser(null);
-        
         window.location.href = "/login";
     }, []);
 
@@ -141,7 +145,8 @@ export const AuthContextProvider = ({ children }) => {
                 profileSuccess,
                 isProfileLoading,
                 toggleBlock,
-                unblockMultiple
+                unblockMultiple,
+                updateUserBlockedList 
             }}
         >
             {children}

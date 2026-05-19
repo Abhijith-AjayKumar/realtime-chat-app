@@ -1,10 +1,14 @@
-import { createContext, useState, useEffect, useCallback } from "react";
+import { createContext, useState, useEffect, useCallback, useContext } from "react";
 import { baseUrl, getRequest, postRequest, putRequest, deleteRequest } from "../utils/services";
 import { io } from "socket.io-client";
+import { AuthContext } from "./AuthContext"; // Import AuthContext to sync state
 
 export const ChatContext = createContext();
 
 export const ChatContextProvider = ({ children, user }) => {
+    // Import the sync function from AuthContext
+    const { updateUserBlockedList } = useContext(AuthContext);
+
     const [userChats, setUserChats] = useState([]);
     const [isUserChatsLoading, setIsUserChatsLoading] = useState(false);
     const [currentChat, setCurrentChat] = useState(null);
@@ -12,60 +16,49 @@ export const ChatContextProvider = ({ children, user }) => {
     const [isMessagesLoading, setIsMessagesLoading] = useState(false);
     const [allUsers, setAllUsers] = useState([]);
     const [onlineUsers, setOnlineUsers] = useState([]);
-    const [notifications, setNotifications] = useState([]); // NEW: Unread message tracker
+    const [notifications, setNotifications] = useState([]); 
     
+    // Block tracking state
+    const [blockedUsersList, setBlockedUsersList] = useState(user?.blockedUsers || []);
     const [socket, setSocket] = useState(null);
 
-    // 1. INITIALIZE WEB-SOCKET ENGINE CONNECTION
+    useEffect(() => {
+        setBlockedUsersList(user?.blockedUsers || []);
+    }, [user]);
+
+    // Socket Initialization
     useEffect(() => {
         const newSocket = io(import.meta.env.VITE_BACKEND_URL || "http://localhost:5000");
         setSocket(newSocket);
-
-        return () => {
-            newSocket.disconnect();
-        };
+        return () => newSocket.disconnect();
     }, [user]);
 
-    // 2. REGISTER USER PATH AND JOIN ACTIVE ROOMS
     useEffect(() => {
         if (!socket || !user?._id) return;
         socket.emit("registerUser", user._id);
-        userChats?.forEach((chat) => {
-            socket.emit("joinRoom", chat._id);
-        });
+        userChats?.forEach((chat) => socket.emit("joinRoom", chat._id));
     }, [socket, user, userChats]);
 
-    // 3. LISTEN FOR ONLINE USERS (Isolated to prevent gray-dot glitch)
+    // Listeners
     useEffect(() => {
         if (!socket) return;
-        socket.on("getOnlineUsers", (res) => {
-            setOnlineUsers(res);
-        });
-        return () => {
-            socket.off("getOnlineUsers");
-        };
-    }, [socket]);
-
-    // 4. LISTEN FOR INBOUND LIVE MESSAGES & NOTIFICATIONS
-    useEffect(() => {
-        if (!socket) return;
-
+        
+        socket.on("getOnlineUsers", (res) => setOnlineUsers(res));
         socket.on("receiveMessage", (newMessage) => {
             if (currentChat?._id === newMessage.chatId) {
-                // Chat is actively open -> Show message immediately
                 setMessages((prev) => [...prev, newMessage]);
             } else {
-                // Chat is closed -> Send to unread notifications badge!
                 setNotifications((prev) => [newMessage, ...prev]);
             }
         });
 
         return () => {
+            socket.off("getOnlineUsers");
             socket.off("receiveMessage");
         };
     }, [socket, currentChat]);
 
-    // Fetch all users to map rosters and profiles
+    // Fetch Data
     useEffect(() => {
         const getUsers = async () => {
             const response = await getRequest(`${baseUrl}/users`);
@@ -74,7 +67,6 @@ export const ChatContextProvider = ({ children, user }) => {
         getUsers();
     }, [user]);
 
-    // Fetch active conversations
     useEffect(() => {
         const getUserChats = async () => {
             if (user?._id) {
@@ -87,7 +79,6 @@ export const ChatContextProvider = ({ children, user }) => {
         getUserChats();
     }, [user]);
 
-    // Fetch messages for active chat room
     useEffect(() => {
         const getMessages = async () => {
             if (currentChat?._id) {
@@ -100,32 +91,18 @@ export const ChatContextProvider = ({ children, user }) => {
         getMessages();
     }, [currentChat]);
 
-    // Click handler that opens the chat AND clears the unread notifications badge
     const updateCurrentChat = useCallback((chat) => {
         setCurrentChat(chat);
         setNotifications((prev) => prev.filter((n) => n.chatId !== chat._id));
     }, []);
 
-    // Send text message handler
     const sendTextMessage = useCallback(async (textMessage, sender, currentChatId, setTextMessage) => {
         if (!textMessage.trim()) return;
-
-        const response = await postRequest(`${baseUrl}/messages`, { 
-            chatId: currentChatId, 
-            senderId: sender._id, 
-            text: textMessage 
-        });
-
+        const response = await postRequest(`${baseUrl}/messages`, { chatId: currentChatId, senderId: sender._id, text: textMessage });
         if (!response.error) {
             setMessages((prev) => [...prev, response]);
             setTextMessage("");
-
-            if (socket) {
-                socket.emit("sendMessage", {
-                    ...response,
-                    roomMembers: currentChat?.members 
-                });
-            }
+            if (socket) socket.emit("sendMessage", { ...response, roomMembers: currentChat?.members });
         }
     }, [socket, currentChat]);
 
@@ -160,40 +137,49 @@ export const ChatContextProvider = ({ children, user }) => {
     }, [user, socket]);
 
     const addMembersToGroup = useCallback(async (chatId, newUserIds) => {
-        if (!user?._id) return;
         const response = await putRequest(`${baseUrl}/chats/group/add-members`, { chatId, requesterId: user._id, newUserIds });
-        if (response.error) return alert(response.message);
-        setCurrentChat(response);
-        setUserChats((prev) => prev.map(chat => chat._id === chatId ? response : chat));
+        if (!response.error) { setCurrentChat(response); setUserChats(prev => prev.map(c => c._id === chatId ? response : c)); }
     }, [user]);
 
     const promoteToSubAdmin = useCallback(async (chatId, targetUserId) => {
-        if (!user?._id) return;
         const response = await putRequest(`${baseUrl}/chats/group/promote`, { chatId, adminId: user._id, targetUserId });
-        if (response.error) return alert(response.message);
-        setCurrentChat(response);
-        setUserChats((prev) => prev.map(chat => chat._id === chatId ? response : chat));
+        if (!response.error) { setCurrentChat(response); setUserChats(prev => prev.map(c => c._id === chatId ? response : c)); }
     }, [user]);
 
     const demoteSubAdmin = useCallback(async (chatId, targetUserId) => {
-        if (!user?._id) return;
         const response = await putRequest(`${baseUrl}/chats/group/demote`, { chatId, adminId: user._id, targetUserId });
-        if (response.error) return alert(response.message);
-        setCurrentChat(response);
-        setUserChats((prev) => prev.map(chat => chat._id === chatId ? response : chat));
+        if (!response.error) { setCurrentChat(response); setUserChats(prev => prev.map(c => c._id === chatId ? response : c)); }
     }, [user]);
 
     const leaveGroupChat = useCallback(async (chatId) => {
-        if (!user?._id) return;
         const response = await putRequest(`${baseUrl}/chats/group/leave`, { chatId, userId: user._id });
-        if (!response.error) {
-            setUserChats((prev) => prev.filter(chat => chat._id !== chatId));
-            setCurrentChat(null);
-        }
+        if (!response.error) { setUserChats(prev => prev.filter(c => c._id !== chatId)); setCurrentChat(null); }
     }, [user]);
 
+    // Action Handlers: Blocking (Syncs to both Context AND Auth/LocalStorage)
+    const toggleBlockState = useCallback(async (currentUserId, targetUserId) => {
+        const response = await putRequest(`${baseUrl}/users/toggle-block`, { currentUserId, targetUserId });
+        if (!response.error) {
+            setBlockedUsersList(response);
+            updateUserBlockedList(response); // Sync to AuthContext/LocalStorage
+        } 
+    }, [updateUserBlockedList]);
+
+    const unblockSelectedUsers = useCallback(async (currentUserId, targetUserIds) => {
+        const response = await putRequest(`${baseUrl}/users/unblock-multiple`, { currentUserId, targetUserIds });
+        if (!response.error) {
+            setBlockedUsersList(response);
+            updateUserBlockedList(response); // Sync to AuthContext/LocalStorage
+        }
+    }, [updateUserBlockedList]);
+
     return (
-        <ChatContext.Provider value={{ onlineUsers, notifications, userChats, isUserChatsLoading, currentChat, messages, isMessagesLoading, sendTextMessage, createChat, updateCurrentChat, deleteChat, clearMessages, allUsers, createGroupChat, addMembersToGroup, promoteToSubAdmin, demoteSubAdmin, leaveGroupChat }}>
+        <ChatContext.Provider value={{ 
+            onlineUsers, notifications, userChats, isUserChatsLoading, currentChat, messages, isMessagesLoading, 
+            sendTextMessage, createChat, updateCurrentChat, deleteChat, clearMessages, allUsers, 
+            createGroupChat, addMembersToGroup, promoteToSubAdmin, demoteSubAdmin, leaveGroupChat,
+            blockedUsersList, toggleBlockState, unblockSelectedUsers 
+        }}>
             {children}
         </ChatContext.Provider>
     );
