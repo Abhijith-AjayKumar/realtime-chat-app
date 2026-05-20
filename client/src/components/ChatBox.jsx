@@ -5,7 +5,7 @@ import { Stack, Form, Button, Dropdown, Badge, Modal } from "react-bootstrap";
 import moment from "moment";
 
 const ChatBox = () => {
-    const { user, toggleBlock } = useContext(AuthContext);
+    const { user, toggleBlockUser,  } = useContext(AuthContext);
     const {
         currentChat, messages, isMessagesLoading, sendTextMessage, allUsers, onlineUsers,
         clearMessages, deleteChat, blockedUsersList,
@@ -138,7 +138,7 @@ const ChatBox = () => {
                                     variant={isUserCurrentlyBlocked ? "danger" : "outline-danger"}
                                     className="rounded-pill px-3 py-1 text-nowrap"
                                     style={{ fontSize: "0.8rem", backgroundColor: isUserCurrentlyBlocked ? "#ef4444" : "transparent", color: "#ffffff" }}
-                                    onClick={() => toggleBlock(recipientId)}
+                                    onClick={() => toggleBlockUser(recipientId)}
                                 >
                                     {isUserCurrentlyBlocked ? "Unblock" : "Block"}
                                 </Button>

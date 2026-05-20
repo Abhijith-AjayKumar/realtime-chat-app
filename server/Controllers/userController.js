@@ -59,8 +59,17 @@ export const findUsers = async (req, res) => {
 export const searchByUserId = async (req, res) => {
     try {
         const { searchId } = req.params;
+    
+        const { currentUserId } = req.query; 
+
         const user = await User.findOne({ userId: searchId }).select("-password");
         if (!user) return res.status(404).json({ message: "User not found" });
+
+        const requester = await User.findById(currentUserId);
+        
+        if (user.blockedUsers.includes(currentUserId) || requester.blockedUsers.includes(user._id)) {
+            return res.status(404).json({ message: "User not found" });
+        }
         res.status(200).json(user);
     } catch (error) {
         res.status(500).json({ message: "Error searching for user" });

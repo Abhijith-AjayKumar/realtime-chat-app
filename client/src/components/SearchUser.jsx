@@ -5,16 +5,14 @@ import { Form, Button, Stack, Alert, Card, Badge } from "react-bootstrap";
 import { baseUrl, getRequest } from "../utils/services";
 
 const SearchUser = () => {
-    const { user } = useContext(AuthContext);
+    const { user, toggleBlockUser, blockedUsersList } = useContext(AuthContext);
     const { createChat, userChats, createGroupChat, allUsers } = useContext(ChatContext);
     const [activeMode, setActiveMode] = useState(null);
 
-    // Search States
     const [searchTerm, setSearchTerm] = useState("");
     const [searchedUser, setSearchedUser] = useState(null);
     const [searchError, setSearchError] = useState(null);
 
-    // Group States
     const [groupName, setGroupName] = useState("");
     const [groupMemberIdInput, setGroupMemberIdInput] = useState("");
     const [groupMembersList, setGroupMembersList] = useState([]); 
@@ -34,30 +32,27 @@ const SearchUser = () => {
         setActiveMode(activeMode === mode ? null : mode);
     };
 
-    // 1-on-1 Search Flow
     const handleSearch = async (e) => {
         e.preventDefault();
         if (!searchTerm.trim()) return;
         setSearchError(null); setSearchedUser(null);
-        const response = await getRequest(`${baseUrl}/users/search/${searchTerm.trim()}`);
-        if (response.error) return showTemporaryError("User not found.");
+        const response = await getRequest(`${baseUrl}/users/search/${searchTerm.trim()}?currentUserId=${user._id}`);
+        if (response.error) return showTemporaryError("User not found or unavailable.");
         if (response._id === user._id) return showTemporaryError("You cannot chat with yourself!");
         if (userChats?.some(chat => !chat.isGroup && chat.members.includes(response._id))) return showTemporaryError("Already friends.");
         setSearchedUser(response);
     };
 
     const handleAddFriend = () => {
-        // STRICTLY 1-ON-1
         createChat(user._id, searchedUser._id);
         setSearchedUser(null); setSearchTerm(""); setActiveMode(null); 
     };
 
-    // Group Setup Flow
     const handleAddMemberToPendingGroup = async (e) => {
         if (e) e.preventDefault();
         if (!groupMemberIdInput.trim()) return;
         setSearchError(null);
-        const response = await getRequest(`${baseUrl}/users/search/${groupMemberIdInput.trim()}`);
+        const response = await getRequest(`${baseUrl}/users/search/${groupMemberIdInput.trim()}?currentUserId=${user._id}`);
         if (response.error) return showTemporaryError("User not found.");
         if (response._id === user._id) return showTemporaryError("You are the owner!");
         if (groupMembersList.some(m => m._id === response._id)) return showTemporaryError("Already added.");
@@ -66,7 +61,6 @@ const SearchUser = () => {
     };
 
     const handleToggleFriendInGroup = (friend) => {
-        setSearchError(null);
         const isAdded = groupMembersList.some(m => m._id === friend._id);
         if (isAdded) setGroupMembersList(prev => prev.filter(m => m._id !== friend._id));
         else setGroupMembersList(prev => [...prev, friend]);
@@ -74,7 +68,6 @@ const SearchUser = () => {
 
     const handleCompileAndCreateGroup = () => {
         if (!groupName.trim()) return showTemporaryError("Declare a group name.");
-        // STRICTLY GROUP
         createGroupChat(groupName.trim(), groupMembersList.map(m => m._id));
         setGroupName(""); setGroupMembersList([]); setActiveMode(null); 
     };
@@ -100,6 +93,26 @@ const SearchUser = () => {
                     </Form>
                 )}
 
+                {/* --- SEARCH RESULT DISPLAY --- */}
+                {activeMode === "search" && searchedUser && (
+                    <Stack direction="horizontal" gap={3} className="mt-3 p-2 align-items-center justify-content-between" style={{ backgroundColor: "var(--bg-main)", borderRadius: "50px", maxWidth: "600px", border: "1px solid #2b2b2b" }}>
+                        <div className="d-flex align-items-center gap-2 ps-2">
+                            <div className="d-flex justify-content-center align-items-center" style={{ height: "34px", width: "34px", borderRadius: "50%", backgroundColor: "var(--accent-blue)", color: "white", fontWeight: "bold" }}>{searchedUser.name.charAt(0).toUpperCase()}</div>
+                            <div className="d-flex flex-column">
+                                <strong style={{ color: "var(--text-primary)", fontSize: "0.9rem", lineHeight: "1.1" }}>{searchedUser.name}</strong>
+                                <span style={{ color: "#a3a3a3", fontSize: "0.75rem" }}>@{searchedUser.userId}</span>
+                            </div>
+                        </div>
+                        <div className="d-flex gap-2">
+                            <Button variant="success" size="sm" className="py-2 px-3" onClick={handleAddFriend} style={{ borderRadius: "50px" }}>🤝 Add</Button>
+                            <Button variant={blockedUsersList.includes(searchedUser._id) ? "danger" : "outline-danger"} size="sm" className="py-2 px-3" onClick={() => toggleBlockUser(searchedUser._id)} style={{ borderRadius: "50px" }}>
+                                {blockedUsersList.includes(searchedUser._id) ? "Unblock" : "Block"}
+                            </Button>
+                        </div>
+                    </Stack>
+                )}
+
+                {/* --- GROUP CREATION DISPLAY --- */}
                 {activeMode === "group" && (
                     <div className="mt-3 pt-3 border-top" style={{ borderColor: "rgba(255,255,255,0.05)" }}>
                         <Stack gap={3} style={{ maxWidth: "600px" }}>
@@ -110,6 +123,8 @@ const SearchUser = () => {
                                     <Button type="submit" variant="outline-secondary" style={{ borderRadius: "50px" }}>➕ Add Member</Button>
                                 </Stack>
                             </Form>
+                            
+                            {/* 🔥 RESTORED: Quick Add List */}
                             <div className="px-1 text-start">
                                 <small style={{ color: "var(--text-secondary)", fontSize: "0.8rem" }}>Quick Add from active chats:</small>
                                 <div className="d-flex flex-wrap gap-2 mt-2">
@@ -125,6 +140,8 @@ const SearchUser = () => {
                                     })}
                                 </div>
                             </div>
+
+                            {/* 🔥 RESTORED: Added Members List */}
                             {groupMembersList.length > 0 && (
                                 <div className="d-flex flex-wrap gap-2 p-3" style={{ backgroundColor: "var(--bg-main)", borderRadius: "16px", border: "1px solid #2b2b2b" }}>
                                     {groupMembersList.map(m => (
@@ -140,15 +157,6 @@ const SearchUser = () => {
                 )}
 
                 {searchError && <Alert variant="danger" className="mt-3 p-2 mb-0" style={{ maxWidth: "600px", borderRadius: "12px" }}>⚠️ {searchError}</Alert>}
-                {activeMode === "search" && searchedUser && (
-                    <Stack direction="horizontal" gap={3} className="mt-3 p-2 align-items-center justify-content-between" style={{ backgroundColor: "var(--bg-main)", borderRadius: "50px", maxWidth: "600px", border: "1px solid #2b2b2b" }}>
-                        <div className="d-flex align-items-center gap-2 ps-2">
-                            <div className="d-flex justify-content-center align-items-center" style={{ height: "34px", width: "34px", borderRadius: "50%", backgroundColor: "var(--accent-blue)", color: "white", fontWeight: "bold" }}>{searchedUser.name.charAt(0).toUpperCase()}</div>
-                            <strong style={{ color: "var(--text-primary)" }}>{searchedUser.name}</strong>
-                        </div>
-                        <Button variant="success" size="sm" className="py-2 px-4" onClick={handleAddFriend} style={{ borderRadius: "50px" }}>🤝 Add Friend</Button>
-                    </Stack>
-                )}
             </Card.Body>
         </Card>
     );

@@ -17,7 +17,7 @@ router.post("/login", loginUser);
 router.get("/", findUsers);
 router.get("/search/:searchId", searchByUserId);
 router.put("/profile", updateProfile);
-router.put("/toggle-block", toggleBlockUser);
+router.put("/block", toggleBlockUser);
 router.put("/unblock-multiple", unblockMultipleUsers);
 router.put("/update-id", updateSearchId);
 

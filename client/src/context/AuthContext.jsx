@@ -5,6 +5,8 @@ export const AuthContext = createContext();
 
 export const AuthContextProvider = ({ children }) => {
     const [user, setUser] = useState(null);
+    // 🔥 FIX: Added the missing state variable
+    const [blockedUsersList, setBlockedUsersList] = useState([]);
 
     const [registerError, setRegisterError] = useState(null);
     const [isRegisterLoading, setIsRegisterLoading] = useState(false);
@@ -25,9 +27,19 @@ export const AuthContextProvider = ({ children }) => {
     useEffect(() => {
         const storedUser = localStorage.getItem("user");
         if (storedUser) {
-            setUser(JSON.parse(storedUser));
+            const parsedUser = JSON.parse(storedUser);
+            setUser(parsedUser);
+            // 🔥 Sync the block list when the app loads
+            setBlockedUsersList(parsedUser.blockedUsers || []);
         }
     }, []);
+
+    // 🔥 FIX: Add an effect to keep the list synced if user object updates
+    useEffect(() => {
+        if (user) {
+            setBlockedUsersList(user.blockedUsers || []);
+        }
+    }, [user]);
 
     const updateRegisterInfo = useCallback((info) => {
         setRegisterInfo((prevInfo) => ({ ...prevInfo, ...info }));
@@ -90,26 +102,28 @@ export const AuthContextProvider = ({ children }) => {
         setTimeout(() => setProfileSuccess(null), 3000);
     }, []);
 
-    // NEW: Function to sync the block list to localStorage and State
     const updateUserBlockedList = useCallback((newList) => {
         if (user) {
             const updatedUser = { ...user, blockedUsers: newList };
             setUser(updatedUser);
+            setBlockedUsersList(newList); // 🔥 Sync state
             localStorage.setItem("user", JSON.stringify(updatedUser));
         }
     }, [user]);
 
-    const toggleBlock = useCallback(async (targetUserId) => {
-        const response = await putRequest(`${baseUrl}/users/toggle-block`, {
-            currentUserId: user._id,
-            targetUserId
+    const toggleBlockUser = async (targetUserId) => {
+        const response = await putRequest(`${baseUrl}/users/block`, { 
+            currentUserId: user._id, 
+            targetUserId 
         });
-        
-        if (response.error) return console.log(response.error);
-        
-        // Use the sync function to persist state
-        updateUserBlockedList(response);
-    }, [user, updateUserBlockedList]);
+
+        if (!response.error) {
+            // Update local user state
+            setUser(prev => ({ ...prev, blockedUsers: response }));
+            // 🔥 Now this exists!
+            setBlockedUsersList(response);
+        }
+    };
 
     const unblockMultiple = useCallback(async (targetUserIds) => {
         const response = await putRequest(`${baseUrl}/users/unblock-multiple`, {
@@ -118,8 +132,6 @@ export const AuthContextProvider = ({ children }) => {
         });
         
         if (response.error) return console.log(response.error);
-
-        // Use the sync function to persist state
         updateUserBlockedList(response);
     }, [user, updateUserBlockedList]);
 
@@ -144,17 +156,16 @@ export const AuthContextProvider = ({ children }) => {
         if (response.error) {
             setIdUpdateError(response.message);
             setTimeout(() => setIdUpdateError(null), 3000);
-            return false; // Tell the UI it failed
+            return false;
         }
 
-        // Update local state and storage
         const updatedUser = { ...user, userId: response.userId };
         setUser(updatedUser);
         localStorage.setItem("user", JSON.stringify(updatedUser));
         
         setIdUpdateSuccess("Search ID updated successfully!");
         setTimeout(() => setIdUpdateSuccess(null), 3000);
-        return true; // Tell the UI it succeeded
+        return true;
     }, [user]);
 
     return (
@@ -176,9 +187,10 @@ export const AuthContextProvider = ({ children }) => {
                 profileError,
                 profileSuccess,
                 isProfileLoading,
-                toggleBlock,
+                toggleBlockUser,
                 unblockMultiple,
-                updateUserBlockedList ,
+                updateUserBlockedList,
+                blockedUsersList, // 🔥 Exported so components can see it
                 updateSearchId,
                 idUpdateError,
                 idUpdateSuccess,
