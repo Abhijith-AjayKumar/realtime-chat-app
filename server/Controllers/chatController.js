@@ -191,7 +191,22 @@ export const removeMember = async (req, res) => {
         const { chatId, adminId, targetUserId } = req.body;
         const chat = await Chat.findById(chatId);
         
-        if (chat.groupAdmin !== adminId) return res.status(403).json("Only Admin can remove members");
+        const isMainAdmin = chat.groupAdmin === adminId;
+        const isSubAdmin = chat.subAdmins.includes(adminId);
+
+        if (!isMainAdmin && !isSubAdmin) {
+            return res.status(403).json("Only Admin or Sub-Admin can remove members");
+        }
+
+        // Sub-Admins cannot remove the Main Admin or other Sub-Admins
+        if (isSubAdmin) {
+            if (targetUserId === chat.groupAdmin) {
+                return res.status(403).json("Sub-Admins cannot remove the Main Admin");
+            }
+            if (chat.subAdmins.includes(targetUserId)) {
+                return res.status(403).json("Sub-Admins cannot remove other Sub-Admins");
+            }
+        }
 
         chat.members = chat.members.filter(m => m !== targetUserId);
         chat.subAdmins = chat.subAdmins.filter(m => m !== targetUserId); 

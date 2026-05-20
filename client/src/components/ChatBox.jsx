@@ -179,8 +179,10 @@ const ChatBox = () => {
                                         <>
                                             <Dropdown.Item onClick={() => openManageModal("promote")}>⬆️ Promote to Sub-Admin</Dropdown.Item>
                                             <Dropdown.Item onClick={() => openManageModal("demote")}>⬇️ Demote Sub-Admin</Dropdown.Item>
-                                            <Dropdown.Item onClick={() => openManageModal("remove")}>❌ Remove Member</Dropdown.Item>
                                         </>
+                                    )}
+                                    {(isMainAdmin || isSubAdmin) && (
+                                        <Dropdown.Item onClick={() => openManageModal("remove")}>❌ Remove Member</Dropdown.Item>
                                     )}
                                     {(isMainAdmin || isSubAdmin) && <Dropdown.Divider style={{ borderColor: "var(--accent-border)" }} />}
                                     <Dropdown.Item className="text-danger fw-bold" onClick={() => openManageModal("confirm_leave")}>🚪 Leave Group</Dropdown.Item>
@@ -351,7 +353,17 @@ const ChatBox = () => {
                     {modalMode === "remove" && (
                         <Stack gap={2} style={{maxHeight: "300px", overflowY: "auto"}}>
                             {groupMemberProfiles
-                                .filter(m => m._id !== currentChat.groupAdmin)
+                                .filter(m => {
+                                    if (isMainAdmin) {
+                                        return m._id !== currentChat.groupAdmin;
+                                    }
+                                    if (isSubAdmin) {
+                                        return m._id !== currentChat.groupAdmin && 
+                                               !currentChat.subAdmins?.includes(m._id) && 
+                                               m._id !== user?._id;
+                                    }
+                                    return false;
+                                })
                                 .map(member => (
                                     <div key={member._id} className="d-flex align-items-center justify-content-between p-2 rounded-3" style={{backgroundColor: "var(--bg-main)"}}>
                                         {/* 🔥 NEW: Stacked Name and ID */}
