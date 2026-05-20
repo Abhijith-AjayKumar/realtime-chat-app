@@ -195,8 +195,21 @@ const ChatBox = () => {
                     {messages && messages.map((msg, index) => {
                         const isMyMessage = msg.senderId === user?._id;
                         const isSystem = msg.senderId === "SYSTEM";
-                        const readTimestamp = lastReadTimestamps[`lastRead_${currentChat._id}_${recipientId}`];
-                        const isMessageRead = readTimestamp && new Date(msg.createdAt) <= new Date(readTimestamp);
+                        let isMessageRead = false;
+                        let isMessageDelivered = false;
+
+                        if (currentChat.isGroup) {
+                            const otherMembers = currentChat.members?.filter(id => id !== user?._id) || [];
+                            isMessageRead = otherMembers.length > 0 && otherMembers.every(memberId => {
+                                const readTimestamp = lastReadTimestamps[`lastRead_${currentChat._id}_${memberId}`];
+                                return readTimestamp && new Date(msg.createdAt) <= new Date(readTimestamp);
+                            });
+                            isMessageDelivered = false;
+                        } else {
+                            const readTimestamp = lastReadTimestamps[`lastRead_${currentChat._id}_${recipientId}`];
+                            isMessageRead = !!(readTimestamp && new Date(msg.createdAt) <= new Date(readTimestamp));
+                            isMessageDelivered = !!isRecipientOnline;
+                        }
 
                         return (
                             <div key={index} ref={scrollRef} className={`d-flex flex-column ${isSystem ? "align-items-center" : isMyMessage ? "align-items-end" : "align-items-start"}`}>
@@ -214,8 +227,8 @@ const ChatBox = () => {
                                         <span>{msg.text}</span>
                                         <div className="d-flex align-items-center gap-1 mt-1" style={{ fontSize: "0.7rem", opacity: 0.75, justifyContent: isMyMessage ? "flex-end" : "flex-start" }}>
                                             <span>{moment(msg.createdAt).format("h:mm A")}</span>
-                                            {isMyMessage && !currentChat.isGroup && (
-                                                <MessageStatusTick isRead={isMessageRead} isDelivered={isRecipientOnline} />
+                                            {isMyMessage && (
+                                                <MessageStatusTick isRead={isMessageRead} isDelivered={isMessageDelivered} />
                                             )}
                                         </div>
                                     </div>

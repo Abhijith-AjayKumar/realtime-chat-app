@@ -101,7 +101,7 @@ export const ChatContextProvider = ({ children, user }) => {
 
     // Automatically emit a read receipt when opening a chat
     useEffect(() => {
-        if (!socket || !currentChat || !user || currentChat.isGroup) return;
+        if (!socket || !currentChat || !user) return;
 
         const sendReceipt = () => {
             const timestamp = new Date().toISOString();
@@ -119,7 +119,7 @@ export const ChatContextProvider = ({ children, user }) => {
 
     // Automatically emit a read receipt when a new message is received in the active chat
     useEffect(() => {
-        if (!socket || !currentChat || !user || currentChat.isGroup || !messages || messages.length === 0) return;
+        if (!socket || !currentChat || !user || !messages || messages.length === 0) return;
 
         const lastMsg = messages[messages.length - 1];
         if (lastMsg && lastMsg.senderId !== user._id && lastMsg.type !== "read_receipt") {
