@@ -13,9 +13,9 @@ const Register = () => {
     } = useContext(AuthContext);
 
     const inputStyle = {
-        backgroundColor: "var(--bg-surface)",
+        backgroundColor: "var(--bg-input)",
         color: "var(--text-primary)",
-        borderColor: "#3f3f3f", 
+        borderColor: "var(--accent-border)", 
     };
 
     const errorStyle = {
@@ -58,7 +58,7 @@ const Register = () => {
                         
                         <Button 
                             type="submit" 
-                            style={{ backgroundColor: "var(--accent-blue)", border: "none" }}
+                            style={{ backgroundColor: "var(--accent-primary)", border: "none" }}
                         >
                             {/* Dynamically change text based on loading state */}
                             {isRegisterLoading ? "Creating account..." : "Register"}

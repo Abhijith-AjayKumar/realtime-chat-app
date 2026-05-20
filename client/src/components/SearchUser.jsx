@@ -72,32 +72,42 @@ const SearchUser = () => {
         setGroupName(""); setGroupMembersList([]); setActiveMode(null); 
     };
 
-    const inputStyle = { backgroundColor: "var(--bg-input)", color: "#ffffff", borderColor: "#2b2b2b", borderRadius: "50px", padding: "0.65rem 1.4rem", fontSize: "0.95rem" };
+    const inputStyle = { backgroundColor: "var(--bg-input)", color: "var(--text-primary)", borderColor: "var(--accent-border)", borderRadius: "50px", padding: "0.65rem 1.4rem", fontSize: "0.95rem" };
 
     return (
-        <Card className="shadow-sm mb-3" style={{ backgroundColor: "var(--bg-surface)", borderRadius: "20px", border: "1px solid rgba(255, 255, 255, 0.05)" }}>
+        <Card className="shadow-sm mb-3" style={{ backgroundColor: "var(--bg-surface)", borderRadius: "20px", border: "1px solid var(--accent-border)", boxShadow: "0 4px 12px rgba(16, 6, 3, 0.6)" }}>
             <Card.Body className="p-3">
                 <div className="p-1 rounded-pill" style={{ backgroundColor: "var(--bg-main)", width: "fit-content" }}>
                     <Stack direction="horizontal" gap={1}>
-                        <Button size="sm" onClick={() => handleModeToggle("search")} style={{ backgroundColor: activeMode === "search" ? "var(--accent-blue)" : "transparent", color: "#ffffff", border: "none", borderRadius: "50px", padding: "0.5rem 1.4rem", fontWeight: "500" }}>🔍 Search User</Button>
-                        <Button size="sm" onClick={() => handleModeToggle("group")} style={{ backgroundColor: activeMode === "group" ? "var(--accent-purple)" : "transparent", color: activeMode === "group" ? "#ffffff" : "var(--text-secondary)", border: "none", borderRadius: "50px", padding: "0.5rem 1.4rem", fontWeight: "500" }}>👥 Create Group</Button>
+                        <Button size="sm" onClick={() => handleModeToggle("search")} style={{ backgroundColor: activeMode === "search" ? "rgba(255, 255, 255, 0.15)" : "transparent", color: "#ffffff", border: "none", borderRadius: "50px", padding: "0.5rem 1.4rem", fontWeight: "500", display: "flex", alignItems: "center", gap: "6px" }}>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16" style={{ color: "#d1d5db" }}>
+                                <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
+                            </svg>
+                            Search User
+                        </Button>
+                        <Button size="sm" onClick={() => handleModeToggle("group")} style={{ backgroundColor: activeMode === "group" ? "var(--accent-secondary)" : "transparent", color: activeMode === "group" ? "#ffffff" : "var(--text-secondary)", border: "none", borderRadius: "50px", padding: "0.5rem 1.4rem", fontWeight: "500" }}>👥 Create Group</Button>
                     </Stack>
                 </div>
 
                 {activeMode === "search" && (
                     <Form onSubmit={handleSearch} className="mt-3 pt-3 border-top" style={{ borderColor: "rgba(255,255,255,0.05)" }}>
                         <Stack direction="horizontal" gap={3} style={{ maxWidth: "600px" }}>
-                            <Form.Control type="text" placeholder="Enter ID..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} style={inputStyle} />
-                            <Button type="submit" style={{ borderRadius: "50px", backgroundColor: "var(--accent-blue)", border: "none" }}> Search </Button>
+                            <div className="position-relative d-flex align-items-center flex-grow-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16" style={{ color: "#a3a3a3", position: "absolute", left: "16px" }}>
+                                    <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
+                                </svg>
+                                <Form.Control type="text" placeholder="Enter ID..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="search-control" style={{ ...inputStyle, width: "100%" }} />
+                            </div>
+                            <Button type="submit" style={{ borderRadius: "50px", backgroundColor: "var(--accent-primary)", border: "none" }}> Search </Button>
                         </Stack>
                     </Form>
                 )}
 
                 {/* --- SEARCH RESULT DISPLAY --- */}
                 {activeMode === "search" && searchedUser && (
-                    <Stack direction="horizontal" gap={3} className="mt-3 p-2 align-items-center justify-content-between" style={{ backgroundColor: "var(--bg-main)", borderRadius: "50px", maxWidth: "600px", border: "1px solid #2b2b2b" }}>
+                    <Stack direction="horizontal" gap={3} className="mt-3 p-2 align-items-center justify-content-between" style={{ backgroundColor: "var(--bg-main)", borderRadius: "50px", maxWidth: "600px", border: "1px solid var(--accent-border)" }}>
                         <div className="d-flex align-items-center gap-2 ps-2">
-                            <div className="d-flex justify-content-center align-items-center" style={{ height: "34px", width: "34px", borderRadius: "50%", backgroundColor: "var(--accent-blue)", color: "white", fontWeight: "bold" }}>{searchedUser.name.charAt(0).toUpperCase()}</div>
+                            <div className="d-flex justify-content-center align-items-center" style={{ height: "34px", width: "34px", borderRadius: "50%", backgroundColor: "var(--accent-primary)", color: "white", fontWeight: "bold" }}>{searchedUser.name.charAt(0).toUpperCase()}</div>
                             <div className="d-flex flex-column">
                                 <strong style={{ color: "var(--text-primary)", fontSize: "0.9rem", lineHeight: "1.1" }}>{searchedUser.name}</strong>
                                 <span style={{ color: "#a3a3a3", fontSize: "0.75rem" }}>@{searchedUser.userId}</span>
@@ -119,7 +129,12 @@ const SearchUser = () => {
                             <Form.Control type="text" placeholder="📁 Group name..." value={groupName} onChange={(e) => setGroupName(e.target.value)} style={inputStyle} />
                             <Form onSubmit={handleAddMemberToPendingGroup}>
                                 <Stack direction="horizontal" gap={3}>
-                                    <Form.Control type="text" placeholder="🔍 Search ID..." value={groupMemberIdInput} onChange={(e) => setGroupMemberIdInput(e.target.value)} style={inputStyle} />
+                                    <div className="position-relative d-flex align-items-center flex-grow-1">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16" style={{ color: "#a3a3a3", position: "absolute", left: "16px" }}>
+                                            <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
+                                        </svg>
+                                        <Form.Control type="text" placeholder="Search ID..." value={groupMemberIdInput} onChange={(e) => setGroupMemberIdInput(e.target.value)} className="search-control" style={{ ...inputStyle, width: "100%" }} />
+                                    </div>
                                     <Button type="submit" variant="outline-secondary" style={{ borderRadius: "50px" }}>➕ Add Member</Button>
                                 </Stack>
                             </Form>
@@ -131,8 +146,8 @@ const SearchUser = () => {
                                     {activeFriends?.map(friend => {
                                         const isAdded = groupMembersList.some(m => m._id === friend._id);
                                         return (
-                                            <div key={friend._id} className="d-flex align-items-center gap-2 p-1 pe-2 rounded-pill" style={{ backgroundColor: isAdded ? "rgba(168, 85, 247, 0.15)" : "#2b2b2b", border: isAdded ? "1px solid var(--accent-purple)" : "1px solid #3f3f3f" }}>
-                                                <div className="d-flex justify-content-center align-items-center text-white rounded-circle" style={{ width: "24px", height: "24px", fontSize: "0.75rem", fontWeight: "bold", backgroundColor: "var(--accent-blue)" }}>{friend.name?.charAt(0).toUpperCase()}</div>
+                                            <div key={friend._id} className="d-flex align-items-center gap-2 p-1 pe-2 rounded-pill" style={{ backgroundColor: isAdded ? "rgba(126, 104, 86, 0.15)" : "var(--bg-main)", border: isAdded ? "1px solid var(--accent-secondary)" : "1px solid var(--accent-border)" }}>
+                                                <div className="d-flex justify-content-center align-items-center text-white rounded-circle" style={{ width: "24px", height: "24px", fontSize: "0.75rem", fontWeight: "bold", backgroundColor: "var(--accent-primary)" }}>{friend.name?.charAt(0).toUpperCase()}</div>
                                                 <span className="text-white" style={{ fontSize: "0.85rem" }}>{friend.name}</span>
                                                 <Button size="sm" variant="link" className={`rounded-pill border-0 ms-1 fw-bold p-0 px-1 text-decoration-none ${isAdded ? "text-danger" : "text-primary"}`} style={{ fontSize: "0.75rem" }} onClick={() => handleToggleFriendInGroup(friend)}>{isAdded ? "✕" : "+ Add"}</Button>
                                             </div>
@@ -143,7 +158,7 @@ const SearchUser = () => {
 
                             {/* 🔥 RESTORED: Added Members List */}
                             {groupMembersList.length > 0 && (
-                                <div className="d-flex flex-wrap gap-2 p-3" style={{ backgroundColor: "var(--bg-main)", borderRadius: "16px", border: "1px solid #2b2b2b" }}>
+                                <div className="d-flex flex-wrap gap-2 p-3" style={{ backgroundColor: "var(--bg-main)", borderRadius: "16px", border: "1px solid var(--accent-border)" }}>
                                     {groupMembersList.map(m => (
                                         <Badge key={m._id} bg="secondary" className="p-2 d-flex align-items-center gap-2 rounded-pill" style={{ backgroundColor: "var(--bg-card-active)" }}>
                                             👤 {m.name} <span style={{ cursor: "pointer", color: "var(--accent-danger)", fontWeight: "bold", fontSize: "1rem", marginLeft: "4px" }} onClick={() => setGroupMembersList(prev => prev.filter(user => user._id !== m._id))}>&times;</span>

@@ -3,7 +3,8 @@ import { ChatContext } from "../context/ChatContext";
 
 const UserChat = ({ chat, user }) => {
     // Bring in notifications from Context
-    const { allUsers, onlineUsers, notifications } = useContext(ChatContext);
+    const { allUsers, onlineUsers, notifications, currentChat } = useContext(ChatContext);
+    const isSelected = currentChat?._id === chat?._id;
 
     // Identify the other user in the DM conversation
     const recipientId = chat?.members?.find((id) => id !== user?._id);
@@ -17,14 +18,23 @@ const UserChat = ({ chat, user }) => {
 
     if (chat.isGroup) {
         return (
-            <div className="d-flex align-items-center justify-content-between p-2 rounded-3 text-white mb-2" style={{ backgroundColor: "var(--bg-main)", cursor: "pointer" }}>
+            <div 
+                className="d-flex align-items-center justify-content-between p-2 mb-2" 
+                style={{ 
+                    backgroundColor: isSelected ? "var(--bg-card-active)" : "var(--bg-main)", 
+                    border: isSelected ? "1px solid var(--accent-primary)" : "1px solid transparent",
+                    borderRadius: "16px", 
+                    cursor: "pointer",
+                    transition: "all 0.2s ease-in-out"
+                }}
+            >
                 <div className="d-flex align-items-center gap-3">
-                    <div className="d-flex justify-content-center align-items-center text-white rounded-circle" style={{ width: "45px", height: "45px", fontWeight: "bold", backgroundColor: "var(--accent-purple)" }}>
+                    <div className="d-flex justify-content-center align-items-center text-white rounded-circle" style={{ width: "45px", height: "45px", fontWeight: "bold", backgroundColor: "var(--accent-secondary)" }}>
                         {chat.groupName?.charAt(0).toUpperCase()}
                     </div>
                     <div>
                         <div className="fw-bold">{chat.groupName}</div>
-                        <small style={{ color: unreadCount > 0 ? "var(--accent-blue)" : "var(--text-secondary)", fontWeight: unreadCount > 0 ? "bold" : "normal" }}>
+                        <small style={{ color: unreadCount > 0 ? "var(--accent-primary)" : "var(--text-secondary)", fontWeight: unreadCount > 0 ? "bold" : "normal" }}>
                             {unreadCount > 0 ? "New Message in Group!" : "Group Chat Room"}
                         </small>
                     </div>
@@ -41,11 +51,20 @@ const UserChat = ({ chat, user }) => {
     }
 
     return (
-        <div className="d-flex align-items-center justify-content-between p-2 rounded-3 text-white mb-2 position-relative" style={{ backgroundColor: "var(--bg-main)", cursor: "pointer" }}>
+        <div 
+            className="d-flex align-items-center justify-content-between p-2 mb-2 position-relative" 
+            style={{ 
+                backgroundColor: isSelected ? "var(--bg-card-active)" : "var(--bg-main)", 
+                border: isSelected ? "1px solid var(--accent-primary)" : "1px solid transparent",
+                borderRadius: "16px", 
+                cursor: "pointer",
+                transition: "all 0.2s ease-in-out"
+            }}
+        >
             <div className="d-flex align-items-center gap-3">
                 {/* Avatar with Status Badge Overlay */}
                 <div className="position-relative">
-                    <div className="d-flex justify-content-center align-items-center text-white rounded-circle" style={{ width: "45px", height: "45px", fontWeight: "bold", backgroundColor: "var(--accent-blue)" }}>
+                    <div className="d-flex justify-content-center align-items-center text-white rounded-circle" style={{ width: "45px", height: "45px", fontWeight: "bold", backgroundColor: "var(--accent-primary)" }}>
                         {recipient?.name?.charAt(0).toUpperCase()}
                     </div>
                     <span 
@@ -53,9 +72,9 @@ const UserChat = ({ chat, user }) => {
                         style={{ 
                             width: "12px", 
                             height: "12px", 
-                            backgroundColor: isOnline ? "#22c55e" : "#64748b",
+                            backgroundColor: isOnline ? "var(--online-indicator)" : "#64748b",
                             border: "2px solid var(--bg-surface)",
-                            boxShadow: isOnline ? "0 0 8px #22c55e" : "none"
+                            boxShadow: isOnline ? "0 0 8px var(--online-indicator)" : "none"
                         }}
                     />
                 </div>
@@ -63,7 +82,7 @@ const UserChat = ({ chat, user }) => {
                 <div className="flex-grow-1">
                     <div className="fw-bold">{recipient?.name || "Loading..."}</div>
                     {/* Make text pop out if there is an unread message */}
-                    <small style={{ color: unreadCount > 0 ? "var(--accent-blue)" : "var(--text-secondary)", fontWeight: unreadCount > 0 ? "bold" : "normal" }}>
+                    <small style={{ color: unreadCount > 0 ? "var(--accent-primary)" : "var(--text-secondary)", fontWeight: unreadCount > 0 ? "bold" : "normal" }}>
                         {unreadCount > 0 ? "New Message!" : (isOnline ? "Online" : "Tap to open window")}
                     </small>
                 </div>

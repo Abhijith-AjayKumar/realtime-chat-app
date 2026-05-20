@@ -15,9 +15,9 @@ const Login = () => {
     }, [user, navigate]);
 
     const inputStyle = {
-        backgroundColor: "var(--bg-surface)",
+        backgroundColor: "var(--bg-input)",
         color: "var(--text-primary)",
-        borderColor: "#3f3f3f", 
+        borderColor: "var(--accent-border)", 
     };
 
     const errorStyle = {
@@ -55,7 +55,7 @@ const Login = () => {
                         
                         <Button 
                             type="submit" 
-                            style={{ backgroundColor: "var(--accent-blue)", border: "none" }}
+                            style={{ backgroundColor: "var(--accent-primary)", border: "none" }}
                             disabled={isLoginLoading}
                         >
                             {isLoginLoading ? "Logging in..." : "Login"}

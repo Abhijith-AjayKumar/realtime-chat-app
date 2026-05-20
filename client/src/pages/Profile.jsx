@@ -63,17 +63,17 @@ const Profile = () => {
         setSelectedBlocks([]); 
     };
 
-    const inputStyle = { backgroundColor: "#1e1e1e", color: "var(--text-primary)", borderColor: "#3f3f3f" };
+    const inputStyle = { backgroundColor: "var(--bg-input)", color: "var(--text-primary)", borderColor: "var(--accent-border)" };
 
     if (!user) return null;
 
     const blockedUserDetails = allUsers?.filter(u => blockedUsersList?.includes(u._id)) || [];
 
     return (
-        <Stack gap={4} className="chat-box" style={{ backgroundColor: "var(--bg-surface)", borderRadius: "10px", padding: "20px", width: "100%", minHeight: "75vh", maxHeight: "75vh", overflowY: "auto", display: "flex", flexDirection: "column" }}>
+        <Stack gap={4} className="chat-box" style={{ backgroundColor: "var(--bg-surface)", borderRadius: "10px", padding: "20px", width: "100%", minHeight: "75vh", maxHeight: "75vh", overflowY: "auto", display: "flex", flexDirection: "column", boxShadow: "0 4px 12px rgba(16, 6, 3, 0.6)" }}>
             
             {/* HEADER */}
-            <div className="chat-header d-flex justify-content-between align-items-center" style={{ borderBottom: "1px solid #3f3f3f", paddingBottom: "10px" }}>
+            <div className="chat-header d-flex justify-content-between align-items-center" style={{ borderBottom: "1px solid var(--accent-border)", paddingBottom: "10px" }}>
                 <div className="d-flex align-items-center gap-3">
                     <Button variant="outline-secondary" size="sm" onClick={() => navigate("/")} style={{ border: "none" }}>
                         &larr; Back
@@ -91,12 +91,12 @@ const Profile = () => {
                 <Form.Label style={{ color: "var(--text-secondary)", fontWeight: "bold", textTransform: "uppercase", fontSize: "0.85rem" }}>
                     Your Unique Search ID
                 </Form.Label>
-                <div className="p-3 rounded-3" style={{ backgroundColor: "#2b2b2b", border: "1px solid #3f3f3f" }}>
+                <div className="p-3 rounded-3" style={{ backgroundColor: "var(--bg-main)", border: "1px solid var(--accent-border)" }}>
                     <div className="d-flex align-items-center justify-content-between">
                         {!isEditingId ? (
                             <>
                                 <div className="d-flex align-items-center gap-2">
-                                    <span style={{ color: "#c084fc", fontWeight: "bold", fontSize: "1.1rem" }}>@</span>
+                                    <span style={{ color: "var(--accent-primary)", fontWeight: "bold", fontSize: "1.1rem" }}>@</span>
                                     <span className="text-white fs-5">{user?.userId || "Not set"}</span>
                                 </div>
                                 <Button 
@@ -115,13 +115,13 @@ const Profile = () => {
                             <div className="w-100">
                                 <Stack direction="horizontal" gap={2}>
                                     <div className="position-relative flex-grow-1">
-                                        <span className="position-absolute top-50 translate-middle-y" style={{ left: "12px", color: "#c084fc", fontWeight: "bold" }}>@</span>
+                                        <span className="position-absolute top-50 translate-middle-y" style={{ left: "12px", color: "var(--accent-primary)", fontWeight: "bold" }}>@</span>
                                         <Form.Control
                                             type="text"
                                             value={newIdInput}
                                             onChange={(e) => setNewIdInput(e.target.value)}
                                             disabled={isIdUpdating}
-                                            style={{ backgroundColor: "#1e1e1e", color: "#fff", borderColor: "#3f3f3f", paddingLeft: "30px" }}
+                                            style={{ backgroundColor: "var(--bg-input)", color: "var(--text-primary)", borderColor: "var(--accent-border)", paddingLeft: "30px" }}
                                         />
                                     </div>
                                     <Button 
@@ -164,7 +164,7 @@ const Profile = () => {
                         <Form.Control type="email" value={user?.email} readOnly disabled style={{ ...inputStyle, opacity: 0.6, cursor: "not-allowed" }} />
                     </Form.Group>
 
-                    <hr className="border-secondary mt-2" />
+                    <hr style={{ borderColor: "var(--accent-border)" }} className="mt-2" />
                     <p style={{ color: "var(--text-secondary)", fontSize: "0.9rem", marginBottom: 0 }}>Security Verification required to make changes below:</p>
 
                     <Form.Group>
@@ -177,14 +177,14 @@ const Profile = () => {
                         <Form.Control type="password" name="newPassword" value={formData.newPassword} onChange={handleChange} style={inputStyle} placeholder="Leave blank to keep current password" />
                     </Form.Group>
 
-                    <Button type="submit" disabled={isProfileLoading} style={{ backgroundColor: "var(--accent-blue)", border: "none", marginTop: "10px", alignSelf: "flex-start" }}>
+                    <Button type="submit" disabled={isProfileLoading} style={{ backgroundColor: "var(--accent-primary)", border: "none", marginTop: "10px", alignSelf: "flex-start" }}>
                         {isProfileLoading ? "Saving..." : "Save Changes"}
                     </Button>
                 </Stack>
             </Form>
 
             {/* BLOCKED USERS SECTION */}
-            <hr className="border-secondary mt-3" />
+            <hr style={{ borderColor: "var(--accent-border)" }} className="mt-3" />
             <h4 style={{ color: "var(--text-primary)", marginBottom: "10px" }}>Blocked Users</h4>
             
             {blockedUserDetails.length === 0 ? (
@@ -197,10 +197,10 @@ const Profile = () => {
                             onClick={() => handleBlockSelect(bu._id)}
                             className="d-flex align-items-center justify-content-between p-2" 
                             style={{ 
-                                backgroundColor: selectedBlocks.includes(bu._id) ? "#3f3f3f" : "#2b2b2b", 
+                                backgroundColor: selectedBlocks.includes(bu._id) ? "var(--bg-card-active)" : "var(--bg-main)", 
                                 borderRadius: "8px", 
                                 cursor: "pointer",
-                                border: selectedBlocks.includes(bu._id) ? "1px solid var(--accent-blue)" : "1px solid transparent",
+                                border: selectedBlocks.includes(bu._id) ? "1px solid var(--accent-primary)" : "1px solid transparent",
                                 transition: "all 0.2s"
                             }}
                         >
@@ -223,7 +223,7 @@ const Profile = () => {
                         size="sm" 
                         onClick={handleUnblockSubmit} 
                         disabled={selectedBlocks.length === 0}
-                        style={{ alignSelf: "flex-start", marginTop: "10px", backgroundColor: "var(--accent-blue)", border: "none" }}
+                        style={{ alignSelf: "flex-start", marginTop: "10px", backgroundColor: "var(--accent-primary)", border: "none" }}
                     >
                         Unblock Selected
                     </Button>

@@ -36,13 +36,15 @@ const NavBar = () => {
                                 size="sm" 
                                 onClick={() => navigate(isProfilePage ? "/" : "/profile")}
                                 style={{ 
-                                    color: isProfilePage ? "#ffffff" : "var(--accent-blue)", 
-                                    borderColor: "var(--accent-blue)",
-                                    backgroundColor: isProfilePage ? "var(--accent-blue)" : "transparent",
+                                    color: isProfilePage ? "#ffffff" : "var(--accent-primary)", 
+                                    borderColor: "var(--accent-primary)",
+                                    backgroundColor: isProfilePage ? "var(--accent-primary)" : "transparent",
                                     borderRadius: "50px",
                                     padding: "0.4rem 1.2rem",
                                     fontSize: "0.85rem",
-                                    fontWeight: "500"
+                                    fontWeight: "500",
+                                    boxShadow: isProfilePage ? "0 0 14px rgba(126, 104, 86, 0.65)" : "0 0 8px rgba(126, 104, 86, 0.3)",
+                                    transition: "all 0.3s ease-in-out"
                                 }}
                             >
                                 {isProfilePage ? "💬 Active Chats" : "👤 Profile"}

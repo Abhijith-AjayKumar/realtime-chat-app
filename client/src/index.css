@@ -2,19 +2,37 @@
    ULTRA-ROUNDED THEME TOKENS
    ========================================================================== */
 :root {
-  --bg-main: #141616;
-  --bg-surface: #1e2222;
-  --bg-input: #141616;
-  --bg-card-hover: #292e2e;
-  --bg-card-active: #383f3f;
+  /* The Palette */
+  --ink: #100603;
+  --mahogany: #29180E;
+  --tobacco: #1B0F07;
+  --silt: #3B3535;
+  --umber: #7E6856;
+  --brume: #594B42;
+  --text-main: #E8D5C4; /* Soft cream for readability */
+  --text-dim: #A89F95;
+
+  /* Mapped UI variables */
+  --bg-main: var(--ink);
+  --bg-surface: var(--tobacco);
+  --bg-input: var(--silt);
+  --bg-card-hover: var(--mahogany);
+  --bg-card-active: var(--mahogany);
   
-  --text-primary: #ffffff;
-  --text-secondary: rgba(255, 255, 255, 0.75); 
-  --text-muted: rgba(255, 255, 255, 0.55); 
-  
-  --accent-blue: #007aff;
-  --accent-purple: #8e44ad;
+  --accent-primary: var(--umber); /* Buttons, active states */
+  --accent-secondary: var(--brume);
+  --accent-border: var(--silt);
   --accent-danger: #ff453a;
+
+  --text-primary: var(--text-main);
+  --text-secondary: var(--text-dim);
+  --text-muted: rgba(232, 213, 196, 0.55);
+
+  /* Fallback aliases for compatibility */
+  --accent-blue: var(--accent-primary);
+  --accent-purple: var(--accent-secondary);
+
+  --online-indicator: #6B8E23; /* Olive/Mossy green */
   
   /* Precision Curves */
   --radius-container: 24px;
@@ -43,7 +61,8 @@ body {
   background-color: var(--bg-surface);
   border-radius: var(--radius-container) !important;
   padding: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid var(--accent-border) !important;
+  box-shadow: 0 4px 12px rgba(16, 6, 3, 0.6) !important;
 }
 
 /* --- Fully Rounded Pill Buttons --- */
@@ -56,22 +75,24 @@ body {
 }
 
 .btn-primary {
-  background-color: var(--accent-blue) !important;
+  background-color: var(--accent-primary) !important;
   border: none !important;
+  box-shadow: 0 2px 6px rgba(16, 6, 3, 0.4) !important;
 }
 .btn-primary:hover:not(:disabled) {
-  background-color: #0062cc !important;
+  opacity: 0.85 !important;
   transform: translateY(-1px);
 }
 
 .btn-outline-secondary {
   color: var(--text-secondary) !important;
-  border-color: #3f3f3f !important;
+  border-color: var(--accent-border) !important;
   background-color: transparent !important;
 }
 .btn-outline-secondary:hover {
   background-color: var(--bg-card-hover) !important;
   color: var(--text-primary) !important;
+  opacity: 0.85 !important;
 }
 
 /* --- CAPSULE FORMS & TEXT CORRECTION --- */
@@ -81,7 +102,7 @@ body {
   padding: 0.6rem 1.2rem !important;
   background-color: var(--bg-input) !important;
   color: var(--text-primary) !important;
-  border: 1px solid #3f3f3f !important;
+  border: 1px solid var(--accent-border) !important;
   transition: all 0.15s ease-in-out !important;
 }
 
@@ -94,8 +115,8 @@ body {
 .form-control:focus {
   background-color: var(--bg-input) !important;
   color: var(--text-primary) !important;
-  border-color: var(--accent-blue) !important;
-  box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.2) !important;
+  border-color: var(--accent-primary) !important;
+  box-shadow: 0 0 0 3px rgba(126, 104, 86, 0.25) !important;
 }
 
 /* Custom Scrollbars */
@@ -106,4 +127,21 @@ body {
 ::-webkit-scrollbar-thumb {
   background: #3a3f3f;
   border-radius: 10px;
+}
+
+/* Custom Helper Utilities */
+.search-control {
+  padding-left: 2.8rem !important;
+}
+
+/* Custom Button Variant */
+.btn-outline-accent {
+  color: var(--accent-primary) !important;
+  border: 1px solid var(--accent-primary) !important;
+  background-color: transparent !important;
+}
+.btn-outline-accent:hover {
+  background-color: var(--bg-card-hover) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--accent-primary) !important;
 }

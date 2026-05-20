@@ -85,14 +85,14 @@ const ChatBox = () => {
         <>
             <Stack gap={4} className="chat-container card-material p-3" style={{ height: "75vh", position: "relative" }}>
                 {/* --- HEADER --- */}
-                <div className="d-flex flex-wrap align-items-center justify-content-between pb-3 border-bottom border-secondary gap-3">
+                <div className="d-flex flex-wrap align-items-center justify-content-between pb-3 gap-3" style={{ borderBottom: "1px solid var(--accent-border)" }}>
                     <div className="d-flex align-items-center gap-3">
                         <div className="position-relative">
-                            <div className="d-flex justify-content-center align-items-center rounded-circle text-white fw-bold" style={{ width: "40px", height: "40px", backgroundColor: currentChat.isGroup ? "var(--accent-purple)" : "var(--accent-blue)" }}>
+                            <div className="d-flex justify-content-center align-items-center rounded-circle text-white fw-bold" style={{ width: "40px", height: "40px", backgroundColor: currentChat.isGroup ? "var(--accent-secondary)" : "var(--accent-primary)" }}>
                                 {currentChat.isGroup ? currentChat.groupName?.charAt(0).toUpperCase() : recipient?.name?.charAt(0).toUpperCase()}
                             </div>
                             {!currentChat.isGroup && (
-                                <span className="position-absolute bottom-0 end-0 rounded-circle" style={{ width: "10px", height: "10px", backgroundColor: isRecipientOnline ? "#22c55e" : "#64748b", border: "2px solid var(--bg-surface)" }} />
+                                <span className="position-absolute bottom-0 end-0 rounded-circle" style={{ width: "10px", height: "10px", backgroundColor: isRecipientOnline ? "var(--online-indicator)" : "#64748b", border: "2px solid var(--bg-surface)" }} />
                             )}
                         </div>
                         <div>
@@ -108,13 +108,13 @@ const ChatBox = () => {
                                 
                                 {/* 🔥 SLEEK UI: User ID styled as a modern dark pill */}
                                 {!currentChat.isGroup && recipient?.userId && (
-                                    <span style={{ color: "#9ca3af", fontSize: "0.7rem", backgroundColor: "#2b2b2b", padding: "2px 8px", borderRadius: "12px", border: "1px solid #3f3f3f", letterSpacing: "0.3px" }}>
+                                    <span style={{ color: "var(--text-secondary)", fontSize: "0.7rem", backgroundColor: "var(--bg-main)", padding: "2px 8px", borderRadius: "12px", border: "1px solid var(--accent-border)", letterSpacing: "0.3px" }}>
                                         @{recipient.userId}
                                     </span>
                                 )}
 
                                 {!currentChat.isGroup ? (
-                                    <small style={{ color: isRecipientOnline ? "#22c55e" : "#6b7280", fontSize: "0.75rem", fontWeight: "500" }}>
+                                    <small style={{ color: isRecipientOnline ? "var(--online-indicator)" : "var(--text-secondary)", fontSize: "0.75rem", fontWeight: "500" }}>
                                         {isRecipientOnline ? "• Active Now" : "Offline"}
                                     </small>
                                 ) : (
@@ -147,10 +147,10 @@ const ChatBox = () => {
 
                         {currentChat.isGroup && (
                             <Dropdown align="end">
-                                <Dropdown.Toggle size="sm" className="rounded-pill px-3 py-1 text-nowrap" style={{ fontSize: "0.8rem", backgroundColor: "transparent", color: "#c084fc", borderColor: "#c084fc" }}>
+                                <Dropdown.Toggle size="sm" variant="outline-accent" className="rounded-pill px-3 py-1 text-nowrap" style={{ fontSize: "0.8rem" }}>
                                     ⚙️ Manage Group
                                 </Dropdown.Toggle>
-                                <Dropdown.Menu variant="dark" style={{ backgroundColor: "var(--bg-surface)", border: "1px solid #3f3f3f", fontSize: "0.85rem" }}>
+                                <Dropdown.Menu variant="dark" style={{ backgroundColor: "var(--bg-surface)", border: "1px solid var(--accent-border)", fontSize: "0.85rem" }}>
                                     {canAddMembers && <Dropdown.Item onClick={() => openManageModal("add")}>➕ Add Member</Dropdown.Item>}
                                     {isMainAdmin && (
                                         <>
@@ -159,7 +159,7 @@ const ChatBox = () => {
                                             <Dropdown.Item onClick={() => openManageModal("remove")}>❌ Remove Member</Dropdown.Item>
                                         </>
                                     )}
-                                    {(isMainAdmin || isSubAdmin) && <Dropdown.Divider style={{ borderColor: "#3f3f3f" }} />}
+                                    {(isMainAdmin || isSubAdmin) && <Dropdown.Divider style={{ borderColor: "var(--accent-border)" }} />}
                                     <Dropdown.Item className="text-danger fw-bold" onClick={() => openManageModal("confirm_leave")}>🚪 Leave Group</Dropdown.Item>
                                 </Dropdown.Menu>
                             </Dropdown>
@@ -180,16 +180,16 @@ const ChatBox = () => {
                                         {msg.text}
                                     </div>
                                 ) : (
-                                    <div className="px-3 py-2 text-white shadow-sm" style={{ backgroundColor: isMyMessage ? "var(--accent-blue, #0d6efd)" : "#262626", borderRadius: isMyMessage ? "20px 20px 4px 20px" : "20px 20px 20px 4px", fontSize: "0.95rem", maxWidth: "75%", width: "fit-content", wordBreak: "break-word" }}>
+                                    <div className="px-3 py-2 text-white shadow-sm" style={{ backgroundColor: isMyMessage ? "var(--accent-primary)" : "var(--silt)", borderRadius: isMyMessage ? "20px 20px 4px 20px" : "20px 20px 20px 4px", fontSize: "0.95rem", maxWidth: "75%", width: "fit-content", wordBreak: "break-word" }}>
                                         {currentChat.isGroup && !isMyMessage && (
-                                            <div style={{ fontSize: "0.7rem", color: "var(--accent-blue)", fontWeight: "bold", marginBottom: "2px" }}>
+                                            <div style={{ fontSize: "0.7rem", color: "var(--accent-primary)", fontWeight: "bold", marginBottom: "2px" }}>
                                                 {allUsers?.find(u => u._id === msg.senderId)?.name || "User"}
                                             </div>
                                         )}
                                         <span>{msg.text}</span>
                                         <div className="d-flex align-items-center gap-1 mt-1" style={{ fontSize: "0.7rem", opacity: 0.75, justifyContent: isMyMessage ? "flex-end" : "flex-start" }}>
                                             <span>{moment(msg.createdAt).format("h:mm A")}</span>
-                                            {isMyMessage && <span style={{ color: isRecipientOnline ? "#60a5fa" : "#94a3b8", fontSize: "0.85rem", marginLeft: "2px" }}>{isRecipientOnline ? "✓✓" : "✓"}</span>}
+                                            {isMyMessage && <span style={{ color: isRecipientOnline ? "var(--accent-primary)" : "var(--text-secondary)", fontSize: "0.85rem", marginLeft: "2px" }}>{isRecipientOnline ? "✓✓" : "✓"}</span>}
                                         </div>
                                     </div>
                                 )}
@@ -207,9 +207,9 @@ const ChatBox = () => {
                             disabled={isUserCurrentlyBlocked}
                             value={textMessage}
                             onChange={(e) => setTextMessage(e.target.value)}
-                            style={{ backgroundColor: "var(--bg-main)", color: "#ffffff", borderColor: "#2b2b2b", borderRadius: "50px", padding: "0.65rem 1.4rem" }}
+                            style={{ backgroundColor: "var(--bg-main)", color: "var(--text-primary)", borderColor: "var(--accent-border)", borderRadius: "50px", padding: "0.65rem 1.4rem" }}
                         />
-                        <Button type="submit" disabled={isUserCurrentlyBlocked} className="rounded-circle d-flex justify-content-center align-items-center" style={{ width: "44px", height: "44px", backgroundColor: "var(--accent-blue)", border: "none" }}>➔</Button>
+                        <Button type="submit" disabled={isUserCurrentlyBlocked} className="rounded-circle d-flex justify-content-center align-items-center" style={{ width: "44px", height: "44px", backgroundColor: "var(--accent-primary)", border: "none" }}>➔</Button>
                     </Stack>
                 </Form>
             </Stack>
@@ -217,8 +217,8 @@ const ChatBox = () => {
             {/* ========================================== */}
             {/* IN-APP GROUP MANAGEMENT MODAL DIALOGS      */}
             {/* ========================================== */}
-            <Modal show={showModal} onHide={() => { setShowModal(false); setTargetMember(null); }} centered contentClassName="card-material text-white" style={{ border: "1px solid #3f3f3f" }}>
-                <Modal.Header closeButton closeVariant="white" style={{ borderBottom: "1px solid #3f3f3f" }}>
+            <Modal show={showModal} onHide={() => { setShowModal(false); setTargetMember(null); }} centered contentClassName="card-material text-white" style={{ border: "1px solid var(--accent-border)" }}>
+                <Modal.Header closeButton closeVariant="white" style={{ borderBottom: "1px solid var(--accent-border)" }}>
                     <Modal.Title className="fs-5">
                         {modalMode === "add" && "➕ Add Member to Group"}
                         {modalMode === "promote" && "⬆️ Promote to Sub-Admin"}
@@ -235,7 +235,7 @@ const ChatBox = () => {
                             <Form onSubmit={handleSearchAddSubmit}>
                                 <Form.Label style={{ fontSize: "0.85rem", color: "var(--text-secondary)" }}>Search by User ID</Form.Label>
                                 <Stack direction="horizontal" gap={2}>
-                                    <Form.Control type="text" placeholder="user_xyz123..." value={searchAddId} onChange={(e) => setSearchAddId(e.target.value)} style={{ backgroundColor: "var(--bg-input)", color: "#fff", borderColor: "#2b2b2b", borderRadius: "50px" }} />
+                                    <Form.Control type="text" placeholder="user_xyz123..." value={searchAddId} onChange={(e) => setSearchAddId(e.target.value)} style={{ backgroundColor: "var(--bg-input)", color: "var(--text-primary)", borderColor: "var(--accent-border)", borderRadius: "50px" }} />
                                     <Button type="submit" variant="primary" style={{ borderRadius: "50px" }}>Search</Button>
                                 </Stack>
                             </Form>
@@ -246,9 +246,9 @@ const ChatBox = () => {
                                 ) : (
                                     <Stack gap={2} style={{ maxHeight: "200px", overflowY: "auto" }}>
                                         {activeFriendsNotInGroup.map(friend => (
-                                            <div key={friend._id} className="d-flex align-items-center justify-content-between p-2 rounded-3" style={{ backgroundColor: "#262626" }}>
+                                            <div key={friend._id} className="d-flex align-items-center justify-content-between p-2 rounded-3" style={{ backgroundColor: "var(--bg-main)" }}>
                                                 <div className="d-flex align-items-center gap-2">
-                                                    <div className="d-flex justify-content-center align-items-center text-white rounded-circle" style={{ width: "30px", height: "30px", backgroundColor: "var(--accent-blue)", fontWeight: "bold", fontSize: "0.8rem" }}>
+                                                    <div className="d-flex justify-content-center align-items-center text-white rounded-circle" style={{ width: "30px", height: "30px", backgroundColor: "var(--accent-primary)", fontWeight: "bold", fontSize: "0.8rem" }}>
                                                         {friend.name?.charAt(0).toUpperCase()}
                                                     </div>
                                                     {/* 🔥 NEW: Stacked Name and ID */}
@@ -274,7 +274,7 @@ const ChatBox = () => {
                                 groupMemberProfiles
                                     .filter(m => m._id !== currentChat.groupAdmin && !currentChat.subAdmins?.includes(m._id))
                                     .map(member => (
-                                        <div key={member._id} className="d-flex align-items-center justify-content-between p-2 rounded-3" style={{ backgroundColor: "#262626" }}>
+                                        <div key={member._id} className="d-flex align-items-center justify-content-between p-2 rounded-3" style={{ backgroundColor: "var(--bg-main)" }}>
                                             {/* 🔥 NEW: Stacked Name and ID */}
                                             <div className="d-flex flex-column">
                                                 <span style={{ fontSize: "0.9rem", lineHeight: "1" }}>{member.name}</span>
@@ -295,7 +295,7 @@ const ChatBox = () => {
                                 groupMemberProfiles
                                     .filter(m => currentChat.subAdmins?.includes(m._id))
                                     .map(member => (
-                                        <div key={member._id} className="d-flex align-items-center justify-content-between p-2 rounded-3" style={{ backgroundColor: "#262626" }}>
+                                        <div key={member._id} className="d-flex align-items-center justify-content-between p-2 rounded-3" style={{ backgroundColor: "var(--bg-main)" }}>
                                             {/* 🔥 NEW: Stacked Name and ID */}
                                             <div className="d-flex flex-column">
                                                 <span style={{ fontSize: "0.9rem", lineHeight: "1" }}>{member.name}</span>
@@ -313,7 +313,7 @@ const ChatBox = () => {
                             {groupMemberProfiles
                                 .filter(m => m._id !== currentChat.groupAdmin)
                                 .map(member => (
-                                    <div key={member._id} className="d-flex align-items-center justify-content-between p-2 rounded-3" style={{backgroundColor: "#262626"}}>
+                                    <div key={member._id} className="d-flex align-items-center justify-content-between p-2 rounded-3" style={{backgroundColor: "var(--bg-main)"}}>
                                         {/* 🔥 NEW: Stacked Name and ID */}
                                         <div className="d-flex flex-column">
                                             <span style={{ fontSize: "0.9rem", lineHeight: "1" }}>{member.name}</span>
