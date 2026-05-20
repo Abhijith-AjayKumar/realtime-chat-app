@@ -9,7 +9,8 @@ const ChatBox = () => {
     const {
         currentChat, messages, isMessagesLoading, sendTextMessage, allUsers, onlineUsers,
         clearMessages, deleteChat, blockedUsersList,
-        addMembersToGroup, promoteToSubAdmin, demoteSubAdmin, leaveGroupChat, removeMember, userChats
+        addMembersToGroup, promoteToSubAdmin, demoteSubAdmin, leaveGroupChat, removeMember, userChats,
+        lastReadTimestamps
     } = useContext(ChatContext);
 
     const [textMessage, setTextMessage] = useState("");
@@ -172,6 +173,8 @@ const ChatBox = () => {
                     {messages && messages.map((msg, index) => {
                         const isMyMessage = msg.senderId === user?._id;
                         const isSystem = msg.senderId === "SYSTEM";
+                        const readTimestamp = lastReadTimestamps[`lastRead_${currentChat._id}_${recipientId}`];
+                        const isMessageRead = readTimestamp && new Date(msg.createdAt) <= new Date(readTimestamp);
 
                         return (
                             <div key={index} ref={scrollRef} className={`d-flex flex-column ${isSystem ? "align-items-center" : isMyMessage ? "align-items-end" : "align-items-start"}`}>
@@ -189,7 +192,16 @@ const ChatBox = () => {
                                         <span>{msg.text}</span>
                                         <div className="d-flex align-items-center gap-1 mt-1" style={{ fontSize: "0.7rem", opacity: 0.75, justifyContent: isMyMessage ? "flex-end" : "flex-start" }}>
                                             <span>{moment(msg.createdAt).format("h:mm A")}</span>
-                                            {isMyMessage && <span style={{ color: isRecipientOnline ? "var(--accent-primary)" : "var(--text-secondary)", fontSize: "0.85rem", marginLeft: "2px" }}>{isRecipientOnline ? "✓✓" : "✓"}</span>}
+                                            {isMyMessage && !currentChat.isGroup && (
+                                                <span style={{ 
+                                                    color: isMessageRead ? "#38bdf8" : "var(--text-secondary)", 
+                                                    fontSize: "0.85rem", 
+                                                    marginLeft: "2px",
+                                                    fontWeight: "bold"
+                                                }}>
+                                                    {isMessageRead || isRecipientOnline ? "✓✓" : "✓"}
+                                                </span>
+                                            )}
                                         </div>
                                     </div>
                                 )}

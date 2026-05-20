@@ -19,6 +19,20 @@ export const ChatContextProvider = ({ children, user }) => {
     const [notifications, setNotifications] = useState([]); 
     const [blockedUsersList, setBlockedUsersList] = useState(user?.blockedUsers || []);
     
+    // Read Receipts persistent store
+    const [lastReadTimestamps, setLastReadTimestamps] = useState(() => {
+        const stored = {};
+        try {
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && key.startsWith("lastRead_")) {
+                    stored[key] = localStorage.getItem(key);
+                }
+            }
+        } catch (e) { console.error(e); }
+        return stored;
+    });
+    
     const [socket, setSocket] = useState(null);
 
     useEffect(() => {
@@ -46,6 +60,16 @@ export const ChatContextProvider = ({ children, user }) => {
         socket.on("getOnlineUsers", (res) => setOnlineUsers(res));
         
         socket.on("receiveMessage", (newMessage) => {
+            if (newMessage.type === "read_receipt") {
+                const key = `lastRead_${newMessage.chatId}_${newMessage.senderId}`;
+                setLastReadTimestamps((prev) => {
+                    const updated = { ...prev, [key]: newMessage.timestamp };
+                    localStorage.setItem(key, newMessage.timestamp);
+                    return updated;
+                });
+                return;
+            }
+
             setUserChats((prevChats) => {
                 return prevChats.map((chat) => {
                     if (chat._id === newMessage.chatId) {
@@ -74,6 +98,41 @@ export const ChatContextProvider = ({ children, user }) => {
             socket.off("receiveMessage");
         };
     }, [socket, currentChat]);
+
+    // Automatically emit a read receipt when opening a chat
+    useEffect(() => {
+        if (!socket || !currentChat || !user || currentChat.isGroup) return;
+
+        const sendReceipt = () => {
+            const timestamp = new Date().toISOString();
+            socket.emit("sendMessage", {
+                chatId: currentChat._id,
+                senderId: user._id,
+                type: "read_receipt",
+                timestamp,
+                roomMembers: currentChat.members
+            });
+        };
+
+        sendReceipt();
+    }, [currentChat, socket, user]);
+
+    // Automatically emit a read receipt when a new message is received in the active chat
+    useEffect(() => {
+        if (!socket || !currentChat || !user || currentChat.isGroup || !messages || messages.length === 0) return;
+
+        const lastMsg = messages[messages.length - 1];
+        if (lastMsg && lastMsg.senderId !== user._id && lastMsg.type !== "read_receipt") {
+            const timestamp = new Date().toISOString();
+            socket.emit("sendMessage", {
+                chatId: currentChat._id,
+                senderId: user._id,
+                type: "read_receipt",
+                timestamp,
+                roomMembers: currentChat.members
+            });
+        }
+    }, [messages, currentChat, socket, user]);
     // Fetch all users
     useEffect(() => {
         const getUsers = async () => {
@@ -280,7 +339,8 @@ export const ChatContextProvider = ({ children, user }) => {
             sendTextMessage, createChat, updateCurrentChat, deleteChat, clearMessages, allUsers, 
             createGroupChat, addMembersToGroup, promoteToSubAdmin, demoteSubAdmin, leaveGroupChat,
             removeMember, blockedUsersList, 
-            unblockMultiple, updateUserBlockedList // 🔥 Passed down here
+            unblockMultiple, updateUserBlockedList, // 🔥 Passed down here
+            lastReadTimestamps
         }}>
             {children}
         </ChatContext.Provider>
