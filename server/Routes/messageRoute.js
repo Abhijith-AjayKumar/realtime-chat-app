@@ -1,11 +1,11 @@
 import express from "express";
-import { createMessage, getMessages, deleteMessages } from "../Controllers/messageController.js"; // <-- add deleteMessages here
+import { createMessage, getMessages, clearMessages } from "../Controllers/messageController.js"; // <-- add deleteMessages here
 
 const router = express.Router();
 
 router.post("/", createMessage);
 
-router.get("/:chatId", getMessages);
-router.delete("/:chatId", deleteMessages); // <-- Add this line!
+router.get("/:chatId/:userId", getMessages);
+router.delete("/:chatId/:userId", clearMessages);
 
 export default router;

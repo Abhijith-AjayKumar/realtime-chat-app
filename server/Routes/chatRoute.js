@@ -2,28 +2,28 @@ import express from "express";
 import { 
     createChat, 
     findUserChats, 
-    deleteChat,
-    createGroupChat,
-    promoteToSubAdmin,
-    addMembersToGroup,
-    leaveGroupChat,
-    deleteGroupChat,
-    demoteSubAdmin
+    deleteChat, 
+    createGroupChat, 
+    addMembersToGroup, 
+    promoteToSubAdmin, 
+    demoteSubAdmin, 
+    removeMember, 
+    leaveGroupChat 
 } from "../Controllers/chatController.js";
 
 const router = express.Router();
 
-// Direct Messages
+// --- 1-ON-1 CHAT ROUTES ---
 router.post("/", createChat);
 router.get("/:userId", findUserChats);
 router.delete("/:chatId", deleteChat);
 
-// Group Infrastructure API
+// --- GROUP CHAT ROUTES ---
 router.post("/group", createGroupChat);
-router.put("/group/promote", promoteToSubAdmin);
 router.put("/group/add-members", addMembersToGroup);
-router.put("/group/leave", leaveGroupChat);
-router.delete("/group/:chatId/:userId", deleteGroupChat);
+router.put("/group/promote", promoteToSubAdmin);
 router.put("/group/demote", demoteSubAdmin);
+router.put("/group/remove-member", removeMember);
+router.put("/group/leave", leaveGroupChat);
 
 export default router;

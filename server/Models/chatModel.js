@@ -2,13 +2,23 @@ import mongoose from "mongoose";
 
 const chatSchema = new mongoose.Schema(
     {
-        members: { type: Array, required: true }, 
-        isGroup: { type: Boolean, default: false }, 
-        groupName: { type: String, default: "" },
-        groupAdmin: { type: String, default: null }, 
-        subAdmins: { type: Array, default: [] } 
+        members: Array,
+        isGroup: { type: Boolean, default: false },
+        groupName: String,
+        groupAdmin: String,
+        subAdmins: Array,
+        // 🔥 NEW: Tracks when each user cleared their chat
+        clearedHistory: [
+            {
+                userId: String,
+                clearedAt: Date,
+            }
+        ]
     },
-    { timestamps: true }
+    {
+        timestamps: true,
+    }
 );
 
-export default mongoose.model("Chat", chatSchema);
+const Chat = mongoose.model("Chat", chatSchema);
+export default Chat;

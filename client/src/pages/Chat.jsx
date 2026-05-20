@@ -6,7 +6,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import UserChat from "../components/UserChat";
 import ChatBox from "../components/ChatBox";
 import SearchUser from "../components/SearchUser"; 
-import Profile from "./Profile"; // RESTORED PROFILE IMPORT
+import Profile from "./Profile"; 
 
 const Chat = () => {
     const { user } = useContext(AuthContext);
@@ -22,6 +22,7 @@ const Chat = () => {
         if (isProfilePage) navigate("/");
     };
 
+    // 1. First, filter the chats based on the search query
     const filteredChats = userChats?.filter((chat) => {
         if (!sidebarSearchQuery.trim()) return true;
         const query = sidebarSearchQuery.toLowerCase();
@@ -29,6 +30,13 @@ const Chat = () => {
         const recipientId = chat.members?.find((id) => id !== user?._id);
         const recipient = allUsers?.find((u) => u._id === recipientId);
         return recipient?.name?.toLowerCase().includes(query);
+    });
+
+    // 2. Then, sort the filtered chats by the latest timestamp (Latest on top)
+    const sortedChats = filteredChats?.sort((a, b) => {
+        const dateA = new Date(a.updatedAt || a.createdAt || 0).getTime();
+        const dateB = new Date(b.updatedAt || b.createdAt || 0).getTime();
+        return dateB - dateA;
     });
 
     return (
@@ -49,11 +57,17 @@ const Chat = () => {
                                 style={{ backgroundColor: "var(--bg-main)", color: "#ffffff", borderColor: "#2b2b2b", borderRadius: "50px", padding: "0.5rem 1.2rem", fontSize: "0.85rem" }}
                             />
                         </div>
+                        
                         {isUserChatsLoading && <p className="text-center my-3" style={{ color: "var(--text-secondary)" }}>Loading chats...</p>}
-                        {filteredChats?.length === 0 && <p className="text-center my-4 p-2" style={{ color: "var(--text-muted)", fontSize: "0.85rem" }}>No matching conversations found.</p>}
-                        {filteredChats?.map((chat, index) => (
-                            <div key={index} onClick={() => handleChatClick(chat)}><UserChat chat={chat} user={user} /></div>
+                        {sortedChats?.length === 0 && <p className="text-center my-4 p-2" style={{ color: "var(--text-muted)", fontSize: "0.85rem" }}>No matching conversations found.</p>}
+                        
+                        {/* Map over sortedChats instead of filteredChats */}
+                        {sortedChats?.map((chat) => (
+                            <div key={chat._id} onClick={() => handleChatClick(chat)}>
+                                <UserChat chat={chat} user={user} />
+                            </div>
                         ))}
+                        
                     </Stack>
                 </Col>
                 <Col xs={12} md={8}>

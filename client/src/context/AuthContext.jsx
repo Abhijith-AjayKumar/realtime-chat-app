@@ -18,6 +18,10 @@ export const AuthContextProvider = ({ children }) => {
     const [profileSuccess, setProfileSuccess] = useState(null);
     const [isProfileLoading, setIsProfileLoading] = useState(false);
 
+    const [idUpdateError, setIdUpdateError] = useState(null);
+    const [idUpdateSuccess, setIdUpdateSuccess] = useState(null);
+    const [isIdUpdating, setIsIdUpdating] = useState(false);
+
     useEffect(() => {
         const storedUser = localStorage.getItem("user");
         if (storedUser) {
@@ -125,6 +129,34 @@ export const AuthContextProvider = ({ children }) => {
         window.location.href = "/login";
     }, []);
 
+    const updateSearchId = useCallback(async (newSearchId) => {
+        setIsIdUpdating(true);
+        setIdUpdateError(null);
+        setIdUpdateSuccess(null);
+
+        const response = await putRequest(`${baseUrl}/users/update-id`, {
+            _id: user._id,
+            newSearchId: newSearchId
+        });
+
+        setIsIdUpdating(false);
+
+        if (response.error) {
+            setIdUpdateError(response.message);
+            setTimeout(() => setIdUpdateError(null), 3000);
+            return false; // Tell the UI it failed
+        }
+
+        // Update local state and storage
+        const updatedUser = { ...user, userId: response.userId };
+        setUser(updatedUser);
+        localStorage.setItem("user", JSON.stringify(updatedUser));
+        
+        setIdUpdateSuccess("Search ID updated successfully!");
+        setTimeout(() => setIdUpdateSuccess(null), 3000);
+        return true; // Tell the UI it succeeded
+    }, [user]);
+
     return (
         <AuthContext.Provider 
             value={{ 
@@ -146,7 +178,11 @@ export const AuthContextProvider = ({ children }) => {
                 isProfileLoading,
                 toggleBlock,
                 unblockMultiple,
-                updateUserBlockedList 
+                updateUserBlockedList ,
+                updateSearchId,
+                idUpdateError,
+                idUpdateSuccess,
+                isIdUpdating
             }}
         >
             {children}

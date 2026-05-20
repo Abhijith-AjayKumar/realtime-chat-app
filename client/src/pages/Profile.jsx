@@ -5,19 +5,27 @@ import { Form, Button, Stack, Alert } from "react-bootstrap";
 import { useNavigate } from "react-router-dom"; 
 
 const Profile = () => {
-    // 1. We keep your Auth Context for profile updates and logout
-    const { user, updateProfile, profileError, profileSuccess, isProfileLoading, logoutUser } = useContext(AuthContext);
+    // 1. Pull in all the Auth profile logic AND the new ID update logic
+    const { 
+        user, updateProfile, profileError, profileSuccess, isProfileLoading, logoutUser,
+        updateSearchId, idUpdateError, idUpdateSuccess, isIdUpdating ,unblockMultiple// <-- New ID props
+    } = useContext(AuthContext);
     
-    // 2. We use the Chat Context for the LIVE blocked list, all users, and the bulk unblock action
-    const { allUsers, blockedUsersList, unblockSelectedUsers } = useContext(ChatContext);
+    // 2. Chat Context for blocked list
+    const { allUsers, blockedUsersList, } = useContext(ChatContext);
     const navigate = useNavigate(); 
 
+    // --- Form State for General Profile ---
     const [formData, setFormData] = useState({
         _id: user?._id,
         currentPassword: "",
         newName: user?.name || "",
         newPassword: ""
     });
+
+    // --- State for the Inline Search ID Editor ---
+    const [isEditingId, setIsEditingId] = useState(false);
+    const [newIdInput, setNewIdInput] = useState(user?.userId || "");
 
     const [selectedBlocks, setSelectedBlocks] = useState([]);
 
@@ -31,7 +39,19 @@ const Profile = () => {
         setFormData(prev => ({ ...prev, currentPassword: "", newPassword: "" }));
     };
 
-    // Toggle multi-select block checkboxes
+    // --- Search ID Save Handler ---
+    const handleSaveId = async () => {
+        if (newIdInput.trim() === user?.userId) {
+            setIsEditingId(false); // Close if they didn't change anything
+            return;
+        }
+
+        const success = await updateSearchId(newIdInput.trim());
+        if (success) {
+            setIsEditingId(false); // Close editor on success
+        }
+    };
+
     const handleBlockSelect = (userId) => {
         setSelectedBlocks(prev => 
             prev.includes(userId) ? prev.filter(id => id !== userId) : [...prev, userId]
@@ -39,8 +59,7 @@ const Profile = () => {
     };
 
     const handleUnblockSubmit = () => {
-        // Fire the function from ChatContext, passing the current user ID and the array of checked IDs
-        unblockSelectedUsers(user._id, selectedBlocks);
+        unblockMultiple(selectedBlocks);
         setSelectedBlocks([]); 
     };
 
@@ -48,12 +67,12 @@ const Profile = () => {
 
     if (!user) return null;
 
-    // Use the live blockedUsersList from ChatContext instead of the static user.blockedUsers
     const blockedUserDetails = allUsers?.filter(u => blockedUsersList?.includes(u._id)) || [];
 
     return (
         <Stack gap={4} className="chat-box" style={{ backgroundColor: "var(--bg-surface)", borderRadius: "10px", padding: "20px", width: "100%", minHeight: "75vh", maxHeight: "75vh", overflowY: "auto", display: "flex", flexDirection: "column" }}>
             
+            {/* HEADER */}
             <div className="chat-header d-flex justify-content-between align-items-center" style={{ borderBottom: "1px solid #3f3f3f", paddingBottom: "10px" }}>
                 <div className="d-flex align-items-center gap-3">
                     <Button variant="outline-secondary" size="sm" onClick={() => navigate("/")} style={{ border: "none" }}>
@@ -67,15 +86,74 @@ const Profile = () => {
             {profileError && <Alert variant="danger">{profileError}</Alert>}
             {profileSuccess && <Alert variant="success">{profileSuccess}</Alert>}
 
+            {/* INSTAGRAM-STYLE SEARCH ID COMPONENT */}
+            <Form.Group>
+                <Form.Label style={{ color: "var(--text-secondary)", fontWeight: "bold", textTransform: "uppercase", fontSize: "0.85rem" }}>
+                    Your Unique Search ID
+                </Form.Label>
+                <div className="p-3 rounded-3" style={{ backgroundColor: "#2b2b2b", border: "1px solid #3f3f3f" }}>
+                    <div className="d-flex align-items-center justify-content-between">
+                        {!isEditingId ? (
+                            <>
+                                <div className="d-flex align-items-center gap-2">
+                                    <span style={{ color: "#c084fc", fontWeight: "bold", fontSize: "1.1rem" }}>@</span>
+                                    <span className="text-white fs-5">{user?.userId || "Not set"}</span>
+                                </div>
+                                <Button 
+                                    variant="outline-light" 
+                                    size="sm" 
+                                    className="rounded-pill px-3"
+                                    onClick={() => {
+                                        setNewIdInput(user?.userId || "");
+                                        setIsEditingId(true);
+                                    }}
+                                >
+                                    Edit
+                                </Button>
+                            </>
+                        ) : (
+                            <div className="w-100">
+                                <Stack direction="horizontal" gap={2}>
+                                    <div className="position-relative flex-grow-1">
+                                        <span className="position-absolute top-50 translate-middle-y" style={{ left: "12px", color: "#c084fc", fontWeight: "bold" }}>@</span>
+                                        <Form.Control
+                                            type="text"
+                                            value={newIdInput}
+                                            onChange={(e) => setNewIdInput(e.target.value)}
+                                            disabled={isIdUpdating}
+                                            style={{ backgroundColor: "#1e1e1e", color: "#fff", borderColor: "#3f3f3f", paddingLeft: "30px" }}
+                                        />
+                                    </div>
+                                    <Button 
+                                        variant="success" 
+                                        onClick={handleSaveId}
+                                        disabled={isIdUpdating || !newIdInput.trim()}
+                                    >
+                                        {isIdUpdating ? "..." : "Save"}
+                                    </Button>
+                                    <Button 
+                                        variant="outline-secondary" 
+                                        onClick={() => setIsEditingId(false)}
+                                        disabled={isIdUpdating}
+                                    >
+                                        Cancel
+                                    </Button>
+                                </Stack>
+                                    <small style={{ color: "#a3a3a3", display: "block", marginTop: "8px", fontSize: "0.8rem" }}>
+                                        Must be unique. Used by friends to invite you to groups.
+                                    </small>
+                            </div>
+                        )}
+                    </div>
+                    {/* Inline Alerts strictly for the ID updater */}
+                    {idUpdateError && <Alert variant="danger" className="mt-3 py-2 px-3 m-0" style={{ fontSize: "0.85rem" }}>{idUpdateError}</Alert>}
+                    {idUpdateSuccess && <Alert variant="success" className="mt-3 py-2 px-3 m-0" style={{ fontSize: "0.85rem" }}>{idUpdateSuccess}</Alert>}
+                </div>
+            </Form.Group>
+
+            {/* STANDARD PROFILE FORM */}
             <Form onSubmit={handleSubmit}>
                 <Stack gap={3}>
-                    <Form.Group>
-                        <Form.Label style={{ color: "var(--text-secondary)" }}>Your Unique Search ID</Form.Label>
-                        <div style={{ backgroundColor: "#2b2b2b", padding: "10px", borderRadius: "5px", color: "#66b2ff", fontWeight: "bold", letterSpacing: "1px" }}>
-                            {user?.userId}
-                        </div>
-                    </Form.Group>
-
                     <Form.Group>
                         <Form.Label style={{ color: "var(--text-secondary)" }}>Username</Form.Label>
                         <Form.Control type="text" name="newName" value={formData.newName} onChange={handleChange} style={inputStyle} />
@@ -87,7 +165,7 @@ const Profile = () => {
                     </Form.Group>
 
                     <hr className="border-secondary mt-2" />
-                    <p style={{ color: "var(--text-secondary)", fontSize: "0.9rem", marginBottom: 0 }}>Security Verification required to make changes:</p>
+                    <p style={{ color: "var(--text-secondary)", fontSize: "0.9rem", marginBottom: 0 }}>Security Verification required to make changes below:</p>
 
                     <Form.Group>
                         <Form.Label style={{ color: "var(--text-secondary)" }}>Current Password</Form.Label>
@@ -105,7 +183,7 @@ const Profile = () => {
                 </Stack>
             </Form>
 
-            {/* RESTORED & UPGRADED BLOCKED USERS SECTION */}
+            {/* BLOCKED USERS SECTION */}
             <hr className="border-secondary mt-3" />
             <h4 style={{ color: "var(--text-primary)", marginBottom: "10px" }}>Blocked Users</h4>
             
@@ -127,7 +205,6 @@ const Profile = () => {
                             }}
                         >
                             <div className="d-flex align-items-center gap-3">
-                                {/* AVATAR CIRCLE */}
                                 <div style={{ height: "40px", width: "40px", borderRadius: "50%", backgroundColor: "var(--accent-danger)", display: "flex", justifyContent: "center", alignItems: "center", color: "white", fontWeight: "bold", fontSize: "1.2rem" }}>
                                     {bu.name.charAt(0).toUpperCase()}
                                 </div>
@@ -137,7 +214,7 @@ const Profile = () => {
                                 type="checkbox"
                                 checked={selectedBlocks.includes(bu._id)}
                                 readOnly
-                                style={{ pointerEvents: "none" }} // Keeps the row clickable without double-firing the checkbox
+                                style={{ pointerEvents: "none" }} 
                             />
                         </div>
                     ))}

@@ -152,3 +152,40 @@ export const unblockMultipleUsers = async (req, res) => {
         res.status(500).json({ message: "Error unblocking users" });
     }
 };
+
+export const updateSearchId = async (req, res) => {
+    const { _id, newSearchId } = req.body;
+
+    try {
+        // 1. Basic validation
+        if (!newSearchId || newSearchId.length < 3) {
+            return res.status(400).json({ message: "Search ID must be at least 3 characters long." });
+        }
+
+        // Prevent spaces and special characters
+        const isValidId = /^[a-zA-Z0-9_.-]+$/.test(newSearchId);
+        if (!isValidId) {
+            return res.status(400).json({ message: "ID can only contain letters, numbers, underscores, and periods." });
+        }
+
+        // 2. Check if the ID is already taken by someone ELSE
+        // 🔥 CHANGED userModel to User
+        const existingUser = await User.findOne({ userId: newSearchId });
+        if (existingUser && existingUser._id.toString() !== _id) {
+            return res.status(400).json({ message: "This Search ID is already taken. Please try another one." });
+        }
+
+        // 3. Update the user
+        // 🔥 CHANGED userModel to User
+        const updatedUser = await User.findByIdAndUpdate(
+            _id,
+            { userId: newSearchId },
+            { new: true } 
+        );
+
+        res.status(200).json(updatedUser);
+    } catch (error) {
+        console.log("CRASH IN UPDATE ID:", error); 
+        res.status(500).json({ message: "Server error while updating ID." });
+    }
+};

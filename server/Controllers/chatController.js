@@ -1,4 +1,10 @@
 import Chat from "../Models/chatModel.js";
+import User from "../Models/userModel.js";
+import Message from "../Models/messageModel.js";
+
+// ==========================================
+// 1-ON-1 CHAT FUNCTIONS
+// ==========================================
 
 export const createChat = async (req, res) => {
     const { firstId, secondId } = req.body;
@@ -26,11 +32,14 @@ export const createChat = async (req, res) => {
 export const findUserChats = async (req, res) => {
     const userId = req.params.userId;
     try {
+        // 🔥 Sorted to load the most recent chats first!
         const chats = await Chat.find({
             members: { $in: [userId] },
-        });
+        }).sort({ updatedAt: -1 }); 
+        
         res.status(200).json(chats);
     } catch (error) {
+        console.log(error);
         res.status(500).json(error);
     }
 };
@@ -38,13 +47,16 @@ export const findUserChats = async (req, res) => {
 export const deleteChat = async (req, res) => {
     try {
         const { chatId } = req.params;
-        // Find and delete the chat room
         await Chat.findByIdAndDelete(chatId);
         res.status(200).json({ message: "Chat deleted successfully" });
     } catch (error) {
         res.status(500).json(error);
     }
 };
+
+// ==========================================
+// GROUP CHAT FUNCTIONS & SYSTEM MESSAGES
+// ==========================================
 
 export const createGroupChat = async (req, res) => {
     try {
@@ -72,33 +84,6 @@ export const createGroupChat = async (req, res) => {
     }
 };
 
-export const promoteToSubAdmin = async (req, res) => {
-    try {
-        const { chatId, adminId, targetUserId } = req.body;
-
-        const chat = await Chat.findById(chatId);
-        if (!chat) return res.status(404).json({ message: "Group chat not found." });
-
-        if (chat.groupAdmin !== adminId) {
-            return res.status(403).json({ message: "Only the main admin can promote sub-admins." });
-        }
-
-        if (chat.subAdmins.includes(targetUserId)) {
-            return res.status(400).json({ message: "User is already a sub-admin." });
-        }
-
-        if (chat.subAdmins.length >= 3) {
-            return res.status(400).json({ message: "Maximum limit of 3 sub-admins reached." });
-        }
-
-        chat.subAdmins.push(targetUserId);
-        await chat.save();
-        res.status(200).json(chat);
-    } catch (error) {
-        res.status(500).json({ message: "Error promoting user." });
-    }
-};
-
 export const addMembersToGroup = async (req, res) => {
     try {
         const { chatId, requesterId, newUserIds } = req.body; 
@@ -113,13 +98,118 @@ export const addMembersToGroup = async (req, res) => {
             return res.status(403).json({ message: "Permission denied. Only admins can add members." });
         }
 
+        const admin = await User.findById(requesterId);
+        const newMembers = await User.find({ _id: { $in: newUserIds } });
+        const memberNames = newMembers.map(m => m.name).join(", ");
+
         const updatedMembers = Array.from(new Set([...chat.members, ...newUserIds]));
         chat.members = updatedMembers;
-
         await chat.save();
-        res.status(200).json(chat);
+
+        // 🔥 Generate System Message
+        const systemMessage = new Message({
+            chatId,
+            senderId: "SYSTEM",
+            text: `${admin.name} added ${memberNames} to the group.`
+        });
+        await systemMessage.save();
+
+        res.status(200).json({ chat, systemMessage });
     } catch (error) {
         res.status(500).json({ message: "Error adding group members." });
+    }
+};
+
+export const promoteToSubAdmin = async (req, res) => {
+    try {
+        const { chatId, adminId, targetUserId } = req.body;
+
+        const chat = await Chat.findById(chatId);
+        if (!chat) return res.status(404).json({ message: "Group chat not found." });
+
+        if (chat.groupAdmin !== adminId) {
+            return res.status(403).json({ message: "Only the main admin can promote sub-admins." });
+        }
+        if (chat.subAdmins.includes(targetUserId)) {
+            return res.status(400).json({ message: "User is already a sub-admin." });
+        }
+        if (chat.subAdmins.length >= 3) {
+            return res.status(400).json({ message: "Maximum limit of 3 sub-admins reached." });
+        }
+
+        chat.subAdmins.push(targetUserId);
+        await chat.save();
+
+        // 🔥 Generate System Message
+        const admin = await User.findById(adminId);
+        const targetUser = await User.findById(targetUserId);
+        const systemMessage = new Message({
+            chatId,
+            senderId: "SYSTEM",
+            text: `${admin.name} promoted ${targetUser.name} to Sub-Admin.`
+        });
+        await systemMessage.save();
+
+        res.status(200).json({ chat, systemMessage });
+    } catch (error) {
+        res.status(500).json({ message: "Error promoting user." });
+    }
+};
+
+export const demoteSubAdmin = async (req, res) => {
+    try {
+        const { chatId, adminId, targetUserId } = req.body;
+
+        const chat = await Chat.findById(chatId);
+        if (!chat) return res.status(404).json({ message: "Group chat not found." });
+
+        if (chat.groupAdmin !== adminId) {
+            return res.status(403).json({ message: "Only the main admin can remove sub-admins." });
+        }
+
+        chat.subAdmins = chat.subAdmins.filter(id => id !== targetUserId);
+        await chat.save();
+
+        // 🔥 Generate System Message
+        const admin = await User.findById(adminId);
+        const targetUser = await User.findById(targetUserId);
+        const systemMessage = new Message({
+            chatId,
+            senderId: "SYSTEM",
+            text: `${admin.name} demoted ${targetUser.name} to standard member.`
+        });
+        await systemMessage.save();
+
+        res.status(200).json({ chat, systemMessage });
+    } catch (error) {
+        res.status(500).json({ message: "Error removing sub-admin role." });
+    }
+};
+
+export const removeMember = async (req, res) => {
+    try {
+        const { chatId, adminId, targetUserId } = req.body;
+        const chat = await Chat.findById(chatId);
+        
+        if (chat.groupAdmin !== adminId) return res.status(403).json("Only Admin can remove members");
+
+        chat.members = chat.members.filter(m => m !== targetUserId);
+        chat.subAdmins = chat.subAdmins.filter(m => m !== targetUserId); 
+        await chat.save();
+
+        // 🔥 Generate System Message
+        const admin = await User.findById(adminId);
+        const targetUser = await User.findById(targetUserId);
+        const systemMessage = new Message({
+            chatId,
+            senderId: "SYSTEM",
+            text: `${admin.name} removed ${targetUser.name} from the group.`
+        });
+        await systemMessage.save();
+
+        res.status(200).json({ chat, systemMessage });
+    } catch (error) {
+        res.status(500).json({ message: "Error removing member." });
     }
 };
 
@@ -137,51 +227,19 @@ export const leaveGroupChat = async (req, res) => {
 
         chat.members = chat.members.filter(id => id !== userId);
         chat.subAdmins = chat.subAdmins.filter(id => id !== userId);
-
         await chat.save();
-        res.status(200).json({ message: "Left group successfully.", deleted: false, chat });
+
+        // 🔥 Generate System Message
+        const leavingUser = await User.findById(userId);
+        const systemMessage = new Message({
+            chatId,
+            senderId: "SYSTEM",
+            text: `${leavingUser.name} left the group.`
+        });
+        await systemMessage.save();
+
+        res.status(200).json({ chat, systemMessage, deleted: false });
     } catch (error) {
         res.status(500).json({ message: "Error processing group exit." });
-    }
-};
-
-export const deleteGroupChat = async (req, res) => {
-    try {
-        const { chatId, userId } = req.params;
-
-        const chat = await Chat.findById(chatId);
-        if (!chat) return res.status(404).json({ message: "Group chat not found." });
-
-        if (chat.groupAdmin !== userId) {
-            return res.status(403).json({ message: "Permission denied. Only the main admin can delete this group." });
-        }
-
-        await Chat.findByIdAndDelete(chatId);
-        res.status(200).json({ message: "Group chat removed permanently.", chatId });
-    } catch (error) {
-        res.status(500).json({ message: "Error deleting group chat." });
-    }
-};
-
-// New: Demote a Sub-Admin back to a regular member
-export const demoteSubAdmin = async (req, res) => {
-    try {
-        const { chatId, adminId, targetUserId } = req.body;
-
-        const chat = await Chat.findById(chatId);
-        if (!chat) return res.status(404).json({ message: "Group chat not found." });
-
-        // Only the Main Admin can strip roles
-        if (chat.groupAdmin !== adminId) {
-            return res.status(403).json({ message: "Only the main admin can remove sub-admins." });
-        }
-
-        // Pull the sub-admin from the array
-        chat.subAdmins = chat.subAdmins.filter(id => id !== targetUserId);
-        
-        await chat.save();
-        res.status(200).json(chat);
-    } catch (error) {
-        res.status(500).json({ message: "Error removing sub-admin role." });
     }
 };
