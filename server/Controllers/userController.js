@@ -22,7 +22,7 @@ export const registerUser = async (req, res) => {
         await user.save();
 
         const token = createToken(user._id);
-        res.status(200).json({ _id: user._id, name, email, userId: user.userId, token, blockedUsers: user.blockedUsers });
+        res.status(200).json({ _id: user._id, name, email, userId: user.userId, token, blockedUsers: user.blockedUsers, profilePic: user.profilePic || "" });
     } catch (error) {
         console.log(error);
         res.status(500).json({ message: "Server error during registration." });
@@ -40,7 +40,7 @@ export const loginUser = async (req, res) => {
         if (!isValidPassword) return res.status(400).json({ message: "Invalid email or password..." });
 
         const token = createToken(user._id);
-        res.status(200).json({ _id: user._id, name: user.name, email, userId: user.userId, token, blockedUsers: user.blockedUsers });
+        res.status(200).json({ _id: user._id, name: user.name, email, userId: user.userId, token, blockedUsers: user.blockedUsers, profilePic: user.profilePic || "" });
     } catch (error) {
         console.log(error);
         res.status(500).json({ message: "Server error during login." });
@@ -79,7 +79,7 @@ export const searchByUserId = async (req, res) => {
 // 5. Update Profile
 export const updateProfile = async (req, res) => {
     try {
-        const { _id, currentPassword, newName, newEmail, newPassword } = req.body;
+        const { _id, currentPassword, newName, newEmail, newPassword, profilePic } = req.body;
         
         let user = await User.findById(_id);
         if (!user) return res.status(400).json({ message: "User not found" });
@@ -89,6 +89,7 @@ export const updateProfile = async (req, res) => {
 
         if (newName) user.name = newName;
         if (newEmail) user.email = newEmail;
+        if (profilePic !== undefined) user.profilePic = profilePic;
         if (newPassword) {
             const salt = await bcrypt.genSalt(10);
             user.password = await bcrypt.hash(newPassword, salt);
@@ -101,7 +102,7 @@ export const updateProfile = async (req, res) => {
 
         await user.save();
         const token = createToken(user._id);
-        res.status(200).json({ _id: user._id, name: user.name, email: user.email, userId: user.userId, token, blockedUsers: user.blockedUsers });
+        res.status(200).json({ _id: user._id, name: user.name, email: user.email, userId: user.userId, token, blockedUsers: user.blockedUsers, profilePic: user.profilePic || "" });
     } catch (error) {
         console.log("Profile Update Error:", error);
         res.status(500).json({ message: "Error updating profile" });

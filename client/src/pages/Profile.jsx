@@ -20,14 +20,45 @@ const Profile = () => {
         _id: user?._id,
         currentPassword: "",
         newName: user?.name || "",
-        newPassword: ""
+        newPassword: "",
+        profilePic: user?.profilePic || ""
     });
+
+    useEffect(() => {
+        if (user) {
+            setFormData(prev => ({
+                ...prev,
+                newName: user.name || "",
+                profilePic: user.profilePic || ""
+            }));
+            setNewIdInput(user.userId || "");
+        }
+    }, [user]);
 
     // --- State for the Inline Search ID Editor ---
     const [isEditingId, setIsEditingId] = useState(false);
     const [newIdInput, setNewIdInput] = useState(user?.userId || "");
 
     const [selectedBlocks, setSelectedBlocks] = useState([]);
+
+    const handleFileChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            if (file.size > 2 * 1024 * 1024) {
+                alert("File size must be under 2MB.");
+                return;
+            }
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setFormData(prev => ({ ...prev, profilePic: reader.result }));
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
+    const handleRemovePhoto = () => {
+        setFormData(prev => ({ ...prev, profilePic: "" }));
+    };
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -85,6 +116,45 @@ const Profile = () => {
 
             {profileError && <Alert variant="danger">{profileError}</Alert>}
             {profileSuccess && <Alert variant="success">{profileSuccess}</Alert>}
+
+            {/* PROFILE PICTURE COMPONENT */}
+            <div className="d-flex align-items-center gap-4 p-3 rounded-3" style={{ backgroundColor: "var(--bg-main)", border: "1px solid var(--accent-border)" }}>
+                <div style={{ position: "relative", width: "80px", height: "80px" }}>
+                    {formData.profilePic ? (
+                        <img 
+                            src={formData.profilePic} 
+                            alt="Avatar" 
+                            style={{ width: "80px", height: "80px", borderRadius: "50%", objectFit: "cover", border: "2px solid var(--accent-primary)", boxShadow: "0 0 10px rgba(126, 104, 86, 0.4)" }} 
+                        />
+                    ) : (
+                        <div style={{ width: "80px", height: "80px", borderRadius: "50%", backgroundColor: "var(--accent-primary)", display: "flex", justifyContent: "center", alignItems: "center", color: "var(--text-primary)", fontWeight: "bold", fontSize: "2rem", border: "2px solid var(--accent-primary)" }}>
+                            {user.name.charAt(0).toUpperCase()}
+                        </div>
+                    )}
+                </div>
+                <Stack gap={2}>
+                    <strong style={{ color: "var(--text-primary)", fontSize: "1.1rem" }}>Profile Picture</strong>
+                    <div className="d-flex gap-2">
+                        <label className="btn btn-outline-light btn-sm rounded-pill px-3 m-0" style={{ cursor: "pointer" }}>
+                            Upload Image
+                            <input 
+                                type="file" 
+                                accept="image/*" 
+                                onChange={handleFileChange} 
+                                style={{ display: "none" }} 
+                            />
+                        </label>
+                        {formData.profilePic && (
+                            <Button variant="outline-danger" size="sm" className="rounded-pill px-3" onClick={handleRemovePhoto}>
+                                Remove
+                            </Button>
+                        )}
+                    </div>
+                    <small style={{ color: "var(--text-secondary)", fontSize: "0.75rem" }}>
+                        JPG, PNG or GIF. Max 2MB. (Requires password verification below to save)
+                    </small>
+                </Stack>
+            </div>
 
             {/* INSTAGRAM-STYLE SEARCH ID COMPONENT */}
             <Form.Group>

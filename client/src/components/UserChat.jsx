@@ -64,9 +64,17 @@ const UserChat = ({ chat, user }) => {
             <div className="d-flex align-items-center gap-3">
                 {/* Avatar with Status Badge Overlay */}
                 <div className="position-relative">
-                    <div className="d-flex justify-content-center align-items-center text-white rounded-circle" style={{ width: "45px", height: "45px", fontWeight: "bold", backgroundColor: "var(--accent-primary)" }}>
-                        {recipient?.name?.charAt(0).toUpperCase()}
-                    </div>
+                    {recipient?.profilePic ? (
+                        <img 
+                            src={recipient.profilePic} 
+                            alt="Avatar" 
+                            style={{ width: "45px", height: "45px", borderRadius: "50%", objectFit: "cover" }} 
+                        />
+                    ) : (
+                        <div className="d-flex justify-content-center align-items-center text-white rounded-circle" style={{ width: "45px", height: "45px", fontWeight: "bold", backgroundColor: "var(--accent-primary)" }}>
+                            {recipient?.name?.charAt(0).toUpperCase()}
+                        </div>
+                    )}
                     <span 
                         className="position-absolute bottom-0 end-0 rounded-circle" 
                         style={{ 

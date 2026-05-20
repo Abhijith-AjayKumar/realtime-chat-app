@@ -111,9 +111,17 @@ const ChatBox = () => {
                 <div className="d-flex flex-wrap align-items-center justify-content-between pb-3 gap-3" style={{ borderBottom: "1px solid var(--accent-border)" }}>
                     <div className="d-flex align-items-center gap-3">
                         <div className="position-relative">
-                            <div className="d-flex justify-content-center align-items-center rounded-circle text-white fw-bold" style={{ width: "40px", height: "40px", backgroundColor: currentChat.isGroup ? "var(--accent-secondary)" : "var(--accent-primary)" }}>
-                                {currentChat.isGroup ? currentChat.groupName?.charAt(0).toUpperCase() : recipient?.name?.charAt(0).toUpperCase()}
-                            </div>
+                            {!currentChat.isGroup && recipient?.profilePic ? (
+                                <img 
+                                    src={recipient.profilePic} 
+                                    alt="Avatar" 
+                                    style={{ width: "40px", height: "40px", borderRadius: "50%", objectFit: "cover" }} 
+                                />
+                            ) : (
+                                <div className="d-flex justify-content-center align-items-center rounded-circle text-white fw-bold" style={{ width: "40px", height: "40px", backgroundColor: currentChat.isGroup ? "var(--accent-secondary)" : "var(--accent-primary)" }}>
+                                    {currentChat.isGroup ? currentChat.groupName?.charAt(0).toUpperCase() : recipient?.name?.charAt(0).toUpperCase()}
+                                </div>
+                            )}
                             {!currentChat.isGroup && (
                                 <span className="position-absolute bottom-0 end-0 rounded-circle" style={{ width: "10px", height: "10px", backgroundColor: isRecipientOnline ? "var(--online-indicator)" : "#64748b", border: "2px solid var(--bg-surface)" }} />
                             )}
@@ -214,24 +222,47 @@ const ChatBox = () => {
                         }
 
                         return (
-                            <div key={index} ref={scrollRef} className={`d-flex flex-column ${isSystem ? "align-items-center" : isMyMessage ? "align-items-end" : "align-items-start"}`}>
+                            <div key={index} ref={scrollRef} className={`d-flex flex-column ${isSystem ? "align-items-center" : isMyMessage ? "align-items-end" : "align-items-start"} my-1`}>
                                 {isSystem ? (
                                     <div className="text-center my-2" style={{ fontSize: "0.8rem", color: "#9ca3af", fontStyle: "italic", padding: "5px 12px", backgroundColor: "#3f3f3f50", borderRadius: "10px" }}>
                                         {msg.text}
                                     </div>
                                 ) : (
-                                    <div className="px-3 py-2 text-white shadow-sm" style={{ backgroundColor: isMyMessage ? "var(--accent-primary)" : "var(--silt)", borderRadius: isMyMessage ? "20px 20px 4px 20px" : "20px 20px 20px 4px", fontSize: "0.95rem", maxWidth: "75%", width: "fit-content", wordBreak: "break-word" }}>
-                                        {currentChat.isGroup && !isMyMessage && (
-                                            <div style={{ fontSize: "0.7rem", color: "var(--accent-primary)", fontWeight: "bold", marginBottom: "2px" }}>
-                                                {allUsers?.find(u => u._id === msg.senderId)?.name || "User"}
+                                    <div className="d-flex align-items-end gap-2" style={{ maxWidth: "75%" }}>
+                                        {!isMyMessage && (
+                                            <div style={{ width: "32px", height: "32px", flexShrink: 0 }}>
+                                                {(() => {
+                                                    const senderObj = allUsers?.find(u => u._id === msg.senderId);
+                                                    if (senderObj?.profilePic) {
+                                                        return (
+                                                            <img 
+                                                                src={senderObj.profilePic} 
+                                                                alt="Avatar" 
+                                                                style={{ width: "32px", height: "32px", borderRadius: "50%", objectFit: "cover" }} 
+                                                            />
+                                                        );
+                                                    }
+                                                    return (
+                                                        <div className="d-flex justify-content-center align-items-center rounded-circle text-white fw-bold" style={{ width: "32px", height: "32px", fontSize: "0.75rem", backgroundColor: "var(--accent-secondary)" }}>
+                                                            {senderObj?.name?.charAt(0).toUpperCase() || "U"}
+                                                        </div>
+                                                    );
+                                                })()}
                                             </div>
                                         )}
-                                        <span>{msg.text}</span>
-                                        <div className="d-flex align-items-center gap-1 mt-1" style={{ fontSize: "0.7rem", opacity: 0.75, justifyContent: isMyMessage ? "flex-end" : "flex-start" }}>
-                                            <span>{moment(msg.createdAt).format("h:mm A")}</span>
-                                            {isMyMessage && (
-                                                <MessageStatusTick isRead={isMessageRead} isDelivered={isMessageDelivered} />
+                                        <div className="px-3 py-2 text-white shadow-sm" style={{ backgroundColor: isMyMessage ? "var(--accent-primary)" : "var(--silt)", borderRadius: isMyMessage ? "20px 20px 4px 20px" : "20px 20px 20px 4px", fontSize: "0.95rem", width: "fit-content", wordBreak: "break-word" }}>
+                                            {currentChat.isGroup && !isMyMessage && (
+                                                <div style={{ fontSize: "0.7rem", color: "var(--accent-primary)", fontWeight: "bold", marginBottom: "2px" }}>
+                                                    {allUsers?.find(u => u._id === msg.senderId)?.name || "User"}
+                                                </div>
                                             )}
+                                            <span>{msg.text}</span>
+                                            <div className="d-flex align-items-center gap-1 mt-1" style={{ fontSize: "0.7rem", opacity: 0.75, justifyContent: isMyMessage ? "flex-end" : "flex-start" }}>
+                                                <span>{moment(msg.createdAt).format("h:mm A")}</span>
+                                                {isMyMessage && (
+                                                    <MessageStatusTick isRead={isMessageRead} isDelivered={isMessageDelivered} />
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
                                 )}
