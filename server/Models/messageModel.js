@@ -4,7 +4,10 @@ const messageSchema = new mongoose.Schema(
     {
         chatId: { type: String, required: true },
         senderId: { type: String, required: true },
-        text: { type: String, required: true },
+        text: { type: String },
+        fileData: { type: String },
+        fileType: { type: String },
+        fileName: { type: String },
     },
     { timestamps: true }
 );

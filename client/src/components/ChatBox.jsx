@@ -37,6 +37,43 @@ const ChatBox = () => {
 
     const [textMessage, setTextMessage] = useState("");
     const scrollRef = useRef();
+    const [attachment, setAttachment] = useState(null);
+    const fileInputRef = useRef(null);
+
+    const handleFileChange = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        // Limit file size to 15MB
+        if (file.size > 15 * 1024 * 1024) {
+            alert("File size exceeds 15MB. Please choose a smaller file.");
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            let type = "file";
+            if (file.type.startsWith("image/")) {
+                type = "image";
+            } else if (file.type.startsWith("video/")) {
+                type = "video";
+            }
+            setAttachment({
+                fileData: reader.result,
+                fileType: type,
+                fileName: file.name
+            });
+        };
+        reader.readAsDataURL(file);
+    };
+
+    const handleSendMessageSubmit = (e) => {
+        e.preventDefault();
+        if (!textMessage.trim() && !attachment) return;
+
+        sendTextMessage(textMessage, user, currentChat._id, setTextMessage, attachment);
+        setAttachment(null);
+    };
 
    // --- MODAL STATE ENGINE ---
     const [showModal, setShowModal] = useState(false);
@@ -256,7 +293,46 @@ const ChatBox = () => {
                                                     {allUsers?.find(u => u._id === msg.senderId)?.name || "User"}
                                                 </div>
                                             )}
-                                            <span>{msg.text}</span>
+                                            {msg.fileData && (
+                                                <div className="mb-2" style={{ maxWidth: "250px" }}>
+                                                    {msg.fileType === "image" && (
+                                                        <img 
+                                                            src={msg.fileData} 
+                                                            alt={msg.fileName || "Image"} 
+                                                            style={{ width: "100%", borderRadius: "10px", cursor: "pointer", objectFit: "cover", maxHeight: "200px" }}
+                                                            onClick={() => {
+                                                                const win = window.open();
+                                                                if (win) {
+                                                                    win.document.write(`<iframe src="${msg.fileData}" frameborder="0" style="border:0; top:0px; left:0px; bottom:0px; right:0px; width:100%; height:100%;" allowfullscreen></iframe>`);
+                                                                }
+                                                            }}
+                                                        />
+                                                    )}
+                                                    {msg.fileType === "video" && (
+                                                        <video 
+                                                            src={msg.fileData} 
+                                                            controls 
+                                                            style={{ width: "100%", borderRadius: "10px", maxHeight: "200px" }} 
+                                                        />
+                                                    )}
+                                                    {msg.fileType === "file" && (
+                                                        <div className="d-flex align-items-center gap-2 p-2 rounded" style={{ backgroundColor: "rgba(0,0,0,0.15)", border: "1px solid var(--accent-border)" }}>
+                                                            <span style={{ fontSize: "1.5rem" }}>📄</span>
+                                                            <div className="d-flex flex-column overflow-hidden" style={{ minWidth: "120px" }}>
+                                                                <span style={{ fontSize: "0.85rem", textOverflow: "ellipsis", whiteSpace: "nowrap", overflow: "hidden", fontWeight: "500", color: "#fff" }}>{msg.fileName}</span>
+                                                                <a 
+                                                                    href={msg.fileData} 
+                                                                    download={msg.fileName} 
+                                                                    style={{ fontSize: "0.75rem", color: "var(--text-primary)", textDecoration: "underline" }}
+                                                                >
+                                                                    Download
+                                                                </a>
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
+                                            {msg.text && <span>{msg.text}</span>}
                                             <div className="d-flex align-items-center gap-1 mt-1" style={{ fontSize: "0.7rem", opacity: 0.75, justifyContent: isMyMessage ? "flex-end" : "flex-start" }}>
                                                 <span>{moment(msg.createdAt).format("h:mm A")}</span>
                                                 {isMyMessage && (
@@ -272,8 +348,46 @@ const ChatBox = () => {
                 </Stack>
 
                 {/* --- INPUT FOOTER --- */}
-                <Form onSubmit={(e) => { e.preventDefault(); sendTextMessage(textMessage, user, currentChat._id, setTextMessage); }} className="mt-auto">
+                <Form onSubmit={handleSendMessageSubmit} className="mt-auto">
+                    {attachment && (
+                        <div className="d-flex align-items-center justify-content-between p-2 mb-2 rounded border" style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--accent-border)" }}>
+                            <div className="d-flex align-items-center gap-2">
+                                {attachment.fileType === "image" && (
+                                    <img src={attachment.fileData} alt="Preview" style={{ width: "40px", height: "40px", borderRadius: "5px", objectFit: "cover" }} />
+                                )}
+                                {attachment.fileType === "video" && (
+                                    <div style={{ position: "relative", width: "40px", height: "40px", backgroundColor: "#000", borderRadius: "5px", display: "flex", justifyContent: "center", alignItems: "center" }}>
+                                        <span style={{ fontSize: "1rem" }}>🎥</span>
+                                    </div>
+                                )}
+                                {attachment.fileType === "file" && (
+                                    <span style={{ fontSize: "1.5rem" }}>📄</span>
+                                )}
+                                <div className="d-flex flex-column overflow-hidden" style={{ maxWidth: "200px" }}>
+                                    <span style={{ fontSize: "0.85rem", textOverflow: "ellipsis", whiteSpace: "nowrap", overflow: "hidden" }} className="text-white">{attachment.fileName}</span>
+                                    <small style={{ fontSize: "0.7rem", color: "var(--text-secondary)" }}>Ready to send</small>
+                                </div>
+                            </div>
+                            <Button size="sm" variant="outline-danger" className="rounded-circle border-0" onClick={() => setAttachment(null)}>✕</Button>
+                        </div>
+                    )}
                     <Stack direction="horizontal" gap={2}>
+                        <input 
+                            type="file" 
+                            ref={fileInputRef} 
+                            style={{ display: "none" }} 
+                            onChange={handleFileChange}
+                            accept="image/*,video/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt"
+                        />
+                        <Button 
+                            type="button"
+                            disabled={isUserCurrentlyBlocked} 
+                            onClick={() => fileInputRef.current?.click()}
+                            className="rounded-circle d-flex justify-content-center align-items-center" 
+                            style={{ width: "44px", height: "44px", backgroundColor: "transparent", color: "var(--accent-primary)", border: "1px solid var(--accent-border)" }}
+                        >
+                            📎
+                        </Button>
                         <Form.Control
                             type="text"
                             placeholder={isUserCurrentlyBlocked ? "🚫 Unblock this user to resume chatting..." : "Type a message..."}

@@ -10,6 +10,7 @@ const NavBar = () => {
 
     // Check if the current URL path is the profile view
     const isProfilePage = location.pathname === "/profile";
+    const isMomentPage = location.pathname === "/moment";
 
     return (
         <Navbar className="mb-4" style={{ backgroundColor: "var(--bg-surface)", height: "3.75rem" }}>
@@ -31,24 +32,45 @@ const NavBar = () => {
                     <Stack direction="horizontal" gap={3}>
                         {/* IF LOGGED IN: Show dynamic routing toggle button */}
                         {user && (
-                            <Button 
-                                variant={isProfilePage ? "primary" : "outline-primary"} 
-                                size="sm" 
-                                onClick={() => navigate(isProfilePage ? "/" : "/profile")}
-                                style={{ 
-                                    color: isProfilePage ? "#ffffff" : "var(--accent-primary)", 
-                                    borderColor: "var(--accent-primary)",
-                                    backgroundColor: isProfilePage ? "var(--accent-primary)" : "transparent",
-                                    borderRadius: "50px",
-                                    padding: "0.4rem 1.2rem",
-                                    fontSize: "0.85rem",
-                                    fontWeight: "500",
-                                    boxShadow: isProfilePage ? "0 0 14px rgba(126, 104, 86, 0.65)" : "0 0 8px rgba(126, 104, 86, 0.3)",
-                                    transition: "all 0.3s ease-in-out"
-                                }}
-                            >
-                                {isProfilePage ? "💬 Active Chats" : "👤 Profile"}
-                            </Button>
+                            <>
+                                <Button 
+                                    variant={isMomentPage ? "primary" : "outline-primary"} 
+                                    size="sm" 
+                                    onClick={() => navigate(isMomentPage ? "/" : "/moment")}
+                                    style={{ 
+                                        color: isMomentPage ? "#ffffff" : "var(--accent-primary)", 
+                                        borderColor: "var(--accent-primary)",
+                                        backgroundColor: isMomentPage ? "var(--accent-primary)" : "transparent",
+                                        borderRadius: "50px",
+                                        padding: "0.4rem 1.2rem",
+                                        fontSize: "0.85rem",
+                                        fontWeight: "500",
+                                        boxShadow: isMomentPage ? "0 0 14px rgba(126, 104, 86, 0.65)" : "0 0 8px rgba(126, 104, 86, 0.3)",
+                                        transition: "all 0.3s ease-in-out"
+                                    }}
+                                >
+                                    ✨ Moment
+                                </Button>
+
+                                <Button 
+                                    variant={isProfilePage ? "primary" : "outline-primary"} 
+                                    size="sm" 
+                                    onClick={() => navigate(isProfilePage ? "/" : "/profile")}
+                                    style={{ 
+                                        color: isProfilePage ? "#ffffff" : "var(--accent-primary)", 
+                                        borderColor: "var(--accent-primary)",
+                                        backgroundColor: isProfilePage ? "var(--accent-primary)" : "transparent",
+                                        borderRadius: "50px",
+                                        padding: "0.4rem 1.2rem",
+                                        fontSize: "0.85rem",
+                                        fontWeight: "500",
+                                        boxShadow: isProfilePage ? "0 0 14px rgba(126, 104, 86, 0.65)" : "0 0 8px rgba(126, 104, 86, 0.3)",
+                                        transition: "all 0.3s ease-in-out"
+                                    }}
+                                >
+                                    {isProfilePage ? "💬 Active Chats" : "👤 Profile"}
+                                </Button>
+                            </>
                         )}
 
                         {/* IF NOT LOGGED IN: Show Login and Register */}

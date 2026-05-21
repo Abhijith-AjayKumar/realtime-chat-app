@@ -176,17 +176,22 @@ export const ChatContextProvider = ({ children, user }) => {
     }, [currentChat, user]);
 
     // Send text message handler
-   const sendTextMessage = useCallback(async (textMessage, sender, currentChatId, setTextMessage) => {
-        if (!textMessage.trim()) return;
+   const sendTextMessage = useCallback(async (textMessage, sender, currentChatId, setTextMessage, attachment = null) => {
+        if (!textMessage.trim() && !attachment) return;
 
         const response = await postRequest(`${baseUrl}/messages`, { 
-            chatId: currentChatId, senderId: sender._id, text: textMessage 
+            chatId: currentChatId, 
+            senderId: sender._id, 
+            text: textMessage,
+            fileData: attachment?.fileData,
+            fileType: attachment?.fileType,
+            fileName: attachment?.fileName
         });
 
         if (!response.error) {
             // Adds the message to the sender's screen instantly
             setMessages((prev) => [...prev, response]);
-            setTextMessage("");
+            if (setTextMessage) setTextMessage("");
 
             setUserChats((prevChats) => {
                 return prevChats.map((chat) => {

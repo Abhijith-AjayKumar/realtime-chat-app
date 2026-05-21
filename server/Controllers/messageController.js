@@ -5,7 +5,7 @@ import User from "../Models/userModel.js";
 import mongoose from "mongoose"; // 🔥 Required to generate a fake ID
 
 export const createMessage = async (req, res) => {
-    const { chatId, senderId, text } = req.body;
+    const { chatId, senderId, text, fileData, fileType, fileName } = req.body;
 
     try {
         const chat = await Chat.findById(chatId);
@@ -23,6 +23,9 @@ export const createMessage = async (req, res) => {
                     chatId,
                     senderId,
                     text,
+                    fileData,
+                    fileType,
+                    fileName,
                     createdAt: new Date(),
                     updatedAt: new Date(),
                     isGhost: true // 🔥 Secret flag to stop the WebSocket delivery
@@ -38,6 +41,9 @@ export const createMessage = async (req, res) => {
             chatId,
             senderId,
             text,
+            fileData,
+            fileType,
+            fileName,
         });
 
         const response = await message.save();
