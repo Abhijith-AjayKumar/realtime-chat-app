@@ -611,3 +611,39 @@ body {
     font-size: 0.75rem !important;
   }
 }
+
+/* ==========================================================================
+   AUDIO RECORDING & PLAYBACK STYLES
+   ========================================================================== */
+.recording-pulse-dot {
+  animation: recordingPulse 1.5s infinite ease-in-out;
+}
+
+@keyframes recordingPulse {
+  0% {
+    transform: scale(0.9);
+    opacity: 0.5;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 1;
+    box-shadow: 0 0 8px var(--accent-danger);
+  }
+  100% {
+    transform: scale(0.9);
+    opacity: 0.5;
+  }
+}
+
+.audio-bubble-container {
+  display: flex;
+  align-items: center;
+  padding: 2px;
+}
+
+.audio-message-player {
+  border-radius: var(--radius-pill);
+  outline: none;
+  filter: invert(0.8) sepia(0.4) saturate(1.2) hue-rotate(345deg);
+  background-color: var(--mahogany);
+}

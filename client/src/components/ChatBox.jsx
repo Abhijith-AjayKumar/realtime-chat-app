@@ -69,6 +69,107 @@ const ChatBox = () => {
         reader.readAsDataURL(file);
     };
 
+    // --- AUDIO RECORDING STATE & FUNCTIONS ---
+    const [isRecording, setIsRecording] = useState(false);
+    const [recordingTime, setRecordingTime] = useState(0);
+    const mediaRecorderRef = useRef(null);
+    const audioChunksRef = useRef([]);
+    const recordingIntervalRef = useRef(null);
+    const shouldSendRef = useRef(false);
+
+    useEffect(() => {
+        return () => {
+            if (recordingIntervalRef.current) {
+                clearInterval(recordingIntervalRef.current);
+            }
+        };
+    }, []);
+
+    const startRecording = async () => {
+        try {
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                showAlert("Audio recording is not supported in this browser.");
+                return;
+            }
+
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            
+            let options = { mimeType: "audio/webm" };
+            if (!MediaRecorder.isTypeSupported("audio/webm")) {
+                options = { mimeType: "audio/ogg" };
+                if (!MediaRecorder.isTypeSupported("audio/ogg")) {
+                    options = { mimeType: "audio/mp4" };
+                    if (!MediaRecorder.isTypeSupported("audio/mp4")) {
+                        options = {};
+                    }
+                }
+            }
+
+            const recorder = new MediaRecorder(stream, options);
+            mediaRecorderRef.current = recorder;
+            audioChunksRef.current = [];
+
+            recorder.ondataavailable = (event) => {
+                if (event.data && event.data.size > 0) {
+                    audioChunksRef.current.push(event.data);
+                }
+            };
+
+            recorder.onstop = async () => {
+                stream.getTracks().forEach((track) => track.stop());
+
+                if (shouldSendRef.current && audioChunksRef.current.length > 0) {
+                    const audioBlob = new Blob(audioChunksRef.current, { type: recorder.mimeType || "audio/webm" });
+                    
+                    const reader = new FileReader();
+                    reader.onloadend = async () => {
+                        const base64Audio = reader.result;
+                        await sendTextMessage("", user, currentChat._id, null, {
+                            fileData: base64Audio,
+                            fileType: "audio",
+                            fileName: `Audio_${Date.now()}.webm`
+                        });
+                    };
+                    reader.readAsDataURL(audioBlob);
+                }
+                audioChunksRef.current = [];
+                mediaRecorderRef.current = null;
+            };
+
+            recorder.start();
+            setIsRecording(true);
+            setRecordingTime(0);
+
+            recordingIntervalRef.current = setInterval(() => {
+                setRecordingTime((prev) => prev + 1);
+            }, 1000);
+
+        } catch (err) {
+            console.error("Microphone access error:", err);
+            showAlert("Could not access microphone. Please grant permission.");
+        }
+    };
+
+    const stopRecording = (shouldSend) => {
+        if (!mediaRecorderRef.current || mediaRecorderRef.current.state === "inactive") return;
+
+        shouldSendRef.current = shouldSend;
+
+        if (recordingIntervalRef.current) {
+            clearInterval(recordingIntervalRef.current);
+            recordingIntervalRef.current = null;
+        }
+
+        mediaRecorderRef.current.stop();
+        setIsRecording(false);
+    };
+
+    const formatDuration = (seconds) => {
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        return `${mins}:${secs < 10 ? "0" : ""}${secs}`;
+    };
+
     const handleSendMessageSubmit = async (e) => {
         e.preventDefault();
         if (!textMessage.trim() && !attachment) return;
@@ -398,6 +499,16 @@ const ChatBox = () => {
                                                             style={{ width: "100%", borderRadius: "10px", maxHeight: "200px" }} 
                                                         />
                                                     )}
+                                                    {msg.fileType === "audio" && (
+                                                         <div className="audio-bubble-container" style={{ width: "240px", maxWidth: "100%" }}>
+                                                             <audio 
+                                                                 src={msg.fileData} 
+                                                                 controls 
+                                                                 className="audio-message-player"
+                                                                 style={{ width: "100%", height: "36px" }} 
+                                                             />
+                                                         </div>
+                                                     )}
                                                     {msg.fileType === "file" && (
                                                         <div className="d-flex align-items-center gap-2 p-2 rounded" style={{ backgroundColor: "rgba(0,0,0,0.15)", border: "1px solid var(--accent-border)" }}>
                                                             <span style={{ fontSize: "1.5rem" }}>📄</span>
@@ -454,33 +565,68 @@ const ChatBox = () => {
                             <Button size="sm" variant="outline-danger" className="rounded-circle border-0" onClick={() => setAttachment(null)}>✕</Button>
                         </div>
                     )}
-                    <Stack direction="horizontal" gap={2}>
-                        <input 
-                            type="file" 
-                            ref={fileInputRef} 
-                            style={{ display: "none" }} 
-                            onChange={handleFileChange}
-                            accept="image/*,video/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt"
-                        />
-                        <Button 
-                            type="button"
-                            disabled={isUserCurrentlyBlocked} 
-                            onClick={() => fileInputRef.current?.click()}
-                            className="rounded-circle d-flex justify-content-center align-items-center" 
-                            style={{ width: "var(--input-btn-size, 44px)", height: "var(--input-btn-size, 44px)", backgroundColor: "transparent", color: "var(--accent-primary)", border: "1px solid var(--accent-border)", flexShrink: 0 }}
-                        >
-                            📎
-                        </Button>
-                        <Form.Control
-                            type="text"
-                            placeholder={isUserCurrentlyBlocked ? "🚫 Unblock this user to resume chatting..." : "Type a message..."}
-                            disabled={isUserCurrentlyBlocked}
-                            value={textMessage}
-                            onChange={(e) => setTextMessage(e.target.value)}
-                            style={{ backgroundColor: "var(--bg-main)", color: "var(--text-primary)", borderColor: "var(--accent-border)", borderRadius: "50px", padding: "var(--input-padding, 0.65rem 1.4rem)" }}
-                        />
-                        <Button type="submit" disabled={isUserCurrentlyBlocked} className="rounded-circle d-flex justify-content-center align-items-center" style={{ width: "var(--input-btn-size, 44px)", height: "var(--input-btn-size, 44px)", backgroundColor: "var(--accent-primary)", border: "none", flexShrink: 0 }}>➔</Button>
-                    </Stack>
+                    {isRecording ? (
+                        <Stack direction="horizontal" gap={2} className="w-100 p-1 rounded-pill align-items-center" style={{ backgroundColor: "var(--bg-main)", border: "1px solid var(--accent-border)", height: "var(--input-btn-size, 44px)" }}>
+                            <div className="d-flex align-items-center gap-2 flex-grow-1 ps-3">
+                                <span className="recording-pulse-dot" style={{ display: "inline-block", width: "10px", height: "10px", borderRadius: "50%", backgroundColor: "var(--accent-danger)" }}></span>
+                                <span className="text-white" style={{ fontSize: "0.9rem" }}>Recording {formatDuration(recordingTime)}</span>
+                            </div>
+                            <Button 
+                                type="button"
+                                variant="outline-danger"
+                                className="rounded-circle d-flex justify-content-center align-items-center border-0" 
+                                style={{ width: "32px", height: "32px", color: "var(--accent-danger)", backgroundColor: "transparent" }}
+                                onClick={() => stopRecording(false)}
+                            >
+                                ✕
+                            </Button>
+                            <Button 
+                                type="button"
+                                className="rounded-circle d-flex justify-content-center align-items-center" 
+                                style={{ width: "32px", height: "32px", backgroundColor: "var(--online-indicator)", border: "none" }}
+                                onClick={() => stopRecording(true)}
+                            >
+                                ➔
+                            </Button>
+                        </Stack>
+                    ) : (
+                        <Stack direction="horizontal" gap={2}>
+                            <input 
+                                type="file" 
+                                ref={fileInputRef} 
+                                style={{ display: "none" }} 
+                                onChange={handleFileChange}
+                                accept="image/*,video/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt"
+                            />
+                            <Button 
+                                type="button"
+                                disabled={isUserCurrentlyBlocked} 
+                                onClick={() => fileInputRef.current?.click()}
+                                className="rounded-circle d-flex justify-content-center align-items-center" 
+                                style={{ width: "var(--input-btn-size, 44px)", height: "var(--input-btn-size, 44px)", backgroundColor: "transparent", color: "var(--accent-primary)", border: "1px solid var(--accent-border)", flexShrink: 0 }}
+                            >
+                                📎
+                            </Button>
+                            <Button 
+                                type="button"
+                                disabled={isUserCurrentlyBlocked} 
+                                onClick={startRecording}
+                                className="rounded-circle d-flex justify-content-center align-items-center" 
+                                style={{ width: "var(--input-btn-size, 44px)", height: "var(--input-btn-size, 44px)", backgroundColor: "transparent", color: "var(--accent-primary)", border: "1px solid var(--accent-border)", flexShrink: 0 }}
+                            >
+                                🎙️
+                            </Button>
+                            <Form.Control
+                                type="text"
+                                placeholder={isUserCurrentlyBlocked ? "🚫 Unblock this user to resume chatting..." : "Type a message..."}
+                                disabled={isUserCurrentlyBlocked}
+                                value={textMessage}
+                                onChange={(e) => setTextMessage(e.target.value)}
+                                style={{ backgroundColor: "var(--bg-main)", color: "var(--text-primary)", borderColor: "var(--accent-border)", borderRadius: "50px", padding: "var(--input-padding, 0.65rem 1.4rem)" }}
+                            />
+                            <Button type="submit" disabled={isUserCurrentlyBlocked} className="rounded-circle d-flex justify-content-center align-items-center" style={{ width: "var(--input-btn-size, 44px)", height: "var(--input-btn-size, 44px)", backgroundColor: "var(--accent-primary)", border: "none", flexShrink: 0 }}>➔</Button>
+                        </Stack>
+                    )}
                 </Form>
             </Stack>
 
