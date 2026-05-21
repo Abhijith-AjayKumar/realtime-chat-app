@@ -160,7 +160,7 @@ const ChatBox = () => {
         <>
             <Stack gap={4} className="chat-container card-material p-3" style={{ height: "75vh", position: "relative" }}>
                 {/* --- HEADER --- */}
-                <div className="d-flex flex-wrap align-items-center justify-content-between pb-2 pb-sm-3 gap-2 gap-sm-3" style={{ borderBottom: "1px solid var(--accent-border)" }}>
+                <div className="d-flex align-items-center justify-content-between pb-2 pb-sm-3 gap-2 gap-sm-3" style={{ borderBottom: "1px solid var(--accent-border)" }}>
                     <div className="d-flex align-items-center gap-2 gap-sm-3">
                         <Button 
                             variant="link" 
@@ -197,8 +197,8 @@ const ChatBox = () => {
                                 {currentChat.isGroup && isSubAdmin && <Badge bg="warning" text="dark" className="chat-header-badge">Sub-Admin</Badge>}
                             </div>
 
-                            {/* Line 2: User ID Pill + Online Status */}
-                            <div className="d-flex align-items-center gap-2 mt-1">
+                            {/* Line 2: User ID Pill + Online Status (Stacked on mobile, side-by-side on tablet/desktop) */}
+                            <div className="d-flex flex-column flex-sm-row align-items-start align-items-sm-center gap-1 gap-sm-2 mt-1">
                                 
                                 {/* 🔥 SLEEK UI: User ID styled as a modern dark pill */}
                                 {!currentChat.isGroup && recipient?.userId && (
@@ -221,7 +221,7 @@ const ChatBox = () => {
                     </div>
 
                     {/* --- ACTIONS DRAWER --- */}
-                    <div className="d-flex gap-2 align-items-center flex-wrap">
+                    <div className="d-flex gap-2 align-items-center">
                         {!currentChat.isGroup && (
                             <>
                                 <Button 
