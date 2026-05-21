@@ -1,6 +1,7 @@
 import { useContext, useEffect, useState } from "react";
 import { AuthContext } from "../context/AuthContext";
 import { ChatContext } from "../context/ChatContext"; 
+import { CallContext } from "../context/CallContext";
 import { Form, Button, Stack, Alert } from "react-bootstrap";
 import { useNavigate } from "react-router-dom"; 
 
@@ -13,6 +14,7 @@ const Profile = () => {
     
     // 2. Chat Context for blocked list
     const { allUsers, blockedUsersList, } = useContext(ChatContext);
+    const { showAlert } = useContext(CallContext);
     const navigate = useNavigate(); 
 
     // --- Form State for General Profile ---
@@ -45,7 +47,7 @@ const Profile = () => {
         const file = e.target.files[0];
         if (file) {
             if (file.size > 2 * 1024 * 1024) {
-                alert("File size must be under 2MB.");
+                showAlert("File size must be under 2MB.");
                 return;
             }
             const reader = new FileReader();
@@ -191,7 +193,8 @@ const Profile = () => {
                                             value={newIdInput}
                                             onChange={(e) => setNewIdInput(e.target.value)}
                                             disabled={isIdUpdating}
-                                            style={{ backgroundColor: "var(--bg-input)", color: "var(--text-primary)", borderColor: "var(--accent-border)", paddingLeft: "30px" }}
+                                            className="search-control"
+                                            style={inputStyle}
                                         />
                                     </div>
                                     <Button 

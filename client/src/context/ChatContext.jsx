@@ -204,9 +204,8 @@ export const ChatContextProvider = ({ children, user }) => {
             if (socket && !response.isGhost) {
                 socket.emit("sendMessage", { ...response, roomMembers: currentChat?.members });
             }
-        } else {
-            alert(response.message || "Failed to send message.");
         }
+        return response;
     }, [socket, currentChat]);
 
     const createChat = useCallback(async (firstId, secondId) => {
@@ -219,7 +218,9 @@ export const ChatContextProvider = ({ children, user }) => {
 
     const updateCurrentChat = useCallback((chat) => {
         setCurrentChat(chat);
-        setNotifications((prev) => prev.filter((n) => n.chatId !== chat._id));
+        if (chat && chat._id) {
+            setNotifications((prev) => prev.filter((n) => n.chatId !== chat._id));
+        }
     }, []);
 
     const deleteChat = useCallback(async (chatId) => {
@@ -340,6 +341,7 @@ export const ChatContextProvider = ({ children, user }) => {
 
     return (
         <ChatContext.Provider value={{ 
+            socket,
             onlineUsers, notifications, userChats, isUserChatsLoading, currentChat, messages, isMessagesLoading, 
             sendTextMessage, createChat, updateCurrentChat, deleteChat, clearMessages, allUsers, 
             createGroupChat, addMembersToGroup, promoteToSubAdmin, demoteSubAdmin, leaveGroupChat,

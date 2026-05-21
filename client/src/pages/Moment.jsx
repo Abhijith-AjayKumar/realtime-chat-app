@@ -1,5 +1,6 @@
 import { useState, useEffect, useContext, useRef } from "react";
 import { AuthContext } from "../context/AuthContext";
+import { CallContext } from "../context/CallContext";
 import { Container, Row, Col, Card, Button, Form, Modal, ProgressBar, Stack } from "react-bootstrap";
 import { baseUrl, getRequest, postRequest } from "../utils/services";
 import moment from "moment";
@@ -14,6 +15,7 @@ const TEXT_BACKGROUNDS = [
 
 const MomentPage = () => {
     const { user } = useContext(AuthContext);
+    const { showAlert } = useContext(CallContext);
     
     // Status states
     const [moments, setMoments] = useState([]);
@@ -68,7 +70,7 @@ const MomentPage = () => {
         if (!file) return;
 
         if (file.size > 15 * 1024 * 1024) {
-            alert("File exceeds 15MB size limit.");
+            showAlert("File exceeds 15MB size limit.");
             return;
         }
 
@@ -81,7 +83,7 @@ const MomentPage = () => {
             } else if (file.type.startsWith("video/")) {
                 setMediaType("video");
             } else {
-                alert("Only images and videos are supported for moments.");
+                showAlert("Only images and videos are supported for moments.");
                 setMediaFile(null);
                 setMediaPreview("");
             }
@@ -102,7 +104,7 @@ const MomentPage = () => {
 
         if (uploadType === "text") {
             if (!textStatus.trim()) {
-                alert("Please type a status.");
+                showAlert("Please type a status.");
                 setIsPosting(false);
                 return;
             }
@@ -111,7 +113,7 @@ const MomentPage = () => {
             payload.text = textStatus;
         } else {
             if (!mediaFile) {
-                alert("Please select an image or video file.");
+                showAlert("Please select an image or video file.");
                 setIsPosting(false);
                 return;
             }
@@ -132,7 +134,7 @@ const MomentPage = () => {
                 setCaption(null);
                 fetchMoments();
             } else {
-                alert(res.message || "Failed to post moment");
+                showAlert(res.message || "Failed to post moment");
             }
         } catch (err) {
             console.error(err);

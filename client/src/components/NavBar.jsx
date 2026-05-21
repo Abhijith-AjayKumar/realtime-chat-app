@@ -23,7 +23,7 @@ const NavBar = () => {
                 
                 {/* Plain text greeting in the middle */}
                 {user && (
-                    <span style={{ color: "var(--text-secondary)" }}>
+                    <span className="d-none d-sm-inline" style={{ color: "var(--text-secondary)" }}>
                         Welcome, <span style={{ color: "var(--text-primary)", fontWeight: "bold" }}>{user.name}</span>
                     </span>
                 )}

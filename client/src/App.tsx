@@ -10,23 +10,26 @@ import NavBar from "./components/NavBar";
 import { useContext } from "react";
 import { AuthContext } from "./context/AuthContext";
 import { ChatContextProvider } from "./context/ChatContext";
+import { CallContextProvider } from "./context/CallContext";
 
 function App() {
   const { user } = useContext(AuthContext);
 
   return (
     <ChatContextProvider user={user}>
-      <NavBar />
-      <Container>
-        <Routes>
-          <Route path="/" element={user ? <Chat /> : <Navigate to="/login" />} />
-          <Route path="/register" element={user ? <Navigate to="/" /> : <Register />} />
-          <Route path="/login" element={user ? <Navigate to="/" /> : <Login />} />
-          <Route path="/profile" element={user ? <Profile /> : <Navigate to="/login" />} />
-          <Route path="/moment" element={user ? <Moment /> : <Navigate to="/login" />} />
-          <Route path="*" element={<Navigate to="/" />} />
-        </Routes>
-      </Container>
+      <CallContextProvider>
+        <NavBar />
+        <Container>
+          <Routes>
+            <Route path="/" element={user ? <Chat /> : <Navigate to="/login" />} />
+            <Route path="/register" element={user ? <Navigate to="/" /> : <Register />} />
+            <Route path="/login" element={user ? <Navigate to="/" /> : <Login />} />
+            <Route path="/profile" element={user ? <Profile /> : <Navigate to="/login" />} />
+            <Route path="/moment" element={user ? <Moment /> : <Navigate to="/login" />} />
+            <Route path="*" element={<Navigate to="/" />} />
+          </Routes>
+        </Container>
+      </CallContextProvider>
     </ChatContextProvider>
   );
 }

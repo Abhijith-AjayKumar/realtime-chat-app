@@ -1,6 +1,7 @@
 import { useContext, useState, useRef, useEffect } from "react";
 import { AuthContext } from "../context/AuthContext";
 import { ChatContext } from "../context/ChatContext";
+import { CallContext } from "../context/CallContext";
 import { Stack, Form, Button, Dropdown, Badge, Modal } from "react-bootstrap";
 import moment from "moment";
 
@@ -32,8 +33,9 @@ const ChatBox = () => {
         currentChat, messages, isMessagesLoading, sendTextMessage, allUsers, onlineUsers,
         clearMessages, deleteChat, blockedUsersList,
         addMembersToGroup, promoteToSubAdmin, demoteSubAdmin, leaveGroupChat, removeMember, userChats,
-        lastReadTimestamps
+        lastReadTimestamps, updateCurrentChat
     } = useContext(ChatContext);
+    const { initiateCall, showAlert } = useContext(CallContext);
 
     const [textMessage, setTextMessage] = useState("");
     const scrollRef = useRef();
@@ -46,7 +48,7 @@ const ChatBox = () => {
 
         // Limit file size to 15MB
         if (file.size > 15 * 1024 * 1024) {
-            alert("File size exceeds 15MB. Please choose a smaller file.");
+            showAlert("File size exceeds 15MB. Please choose a smaller file.");
             return;
         }
 
@@ -67,12 +69,15 @@ const ChatBox = () => {
         reader.readAsDataURL(file);
     };
 
-    const handleSendMessageSubmit = (e) => {
+    const handleSendMessageSubmit = async (e) => {
         e.preventDefault();
         if (!textMessage.trim() && !attachment) return;
 
-        sendTextMessage(textMessage, user, currentChat._id, setTextMessage, attachment);
+        const res = await sendTextMessage(textMessage, user, currentChat._id, setTextMessage, attachment);
         setAttachment(null);
+        if (res && res.error) {
+            showAlert(res.message || "Failed to send message.");
+        }
     };
 
    // --- MODAL STATE ENGINE ---
@@ -82,6 +87,10 @@ const ChatBox = () => {
     
     //  Holds the user we want to remove so the confirm screen knows who it is
     const [targetMember, setTargetMember] = useState(null);
+
+    const [showGroupCallModal, setShowGroupCallModal] = useState(false);
+    const [groupCallType, setGroupCallType] = useState("voice"); // "voice" | "video"
+
 
     
     useEffect(() => { scrollRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
@@ -133,8 +142,14 @@ const ChatBox = () => {
         // SAFE SEARCH: Look through locally loaded users to prevent backend crashes
         const found = allUsers?.find(u => u.userId === searchAddId.trim() || u.email === searchAddId.trim() || u.name === searchAddId.trim());
         
-        if (!found) return alert("User not found in the network. Check the ID.");
-        if (currentChat.members.includes(found._id)) return alert("User is already in this group.");
+        if (!found) {
+            showAlert("User not found in the network. Check the ID.");
+            return;
+        }
+        if (currentChat.members.includes(found._id)) {
+            showAlert("User is already in this group.");
+            return;
+        }
 
         addMembersToGroup(currentChat._id, [found._id]);
         setSearchAddId("");
@@ -147,6 +162,17 @@ const ChatBox = () => {
                 {/* --- HEADER --- */}
                 <div className="d-flex flex-wrap align-items-center justify-content-between pb-3 gap-3" style={{ borderBottom: "1px solid var(--accent-border)" }}>
                     <div className="d-flex align-items-center gap-3">
+                        <Button 
+                            variant="link" 
+                            className="d-md-none p-0 text-white border-0 me-1" 
+                            style={{ textDecoration: "none" }}
+                            onClick={() => updateCurrentChat(null)}
+                        >
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                <line x1="19" y1="12" x2="5" y2="12"></line>
+                                <polyline points="12 19 5 12 12 5"></polyline>
+                            </svg>
+                        </Button>
                         <div className="position-relative">
                             {!currentChat.isGroup && recipient?.profilePic ? (
                                 <img 
@@ -196,46 +222,101 @@ const ChatBox = () => {
 
                     {/* --- ACTIONS DRAWER --- */}
                     <div className="d-flex gap-2 align-items-center flex-wrap">
-                        <Button size="sm" variant="outline-warning" className="rounded-pill px-3 py-1 text-nowrap" style={{ fontSize: "0.8rem" }} onClick={() => clearMessages(currentChat._id)}>Clear Log</Button>
-
                         {!currentChat.isGroup && (
                             <>
-                                <Button size="sm" variant="outline-danger" className="rounded-pill px-3 py-1 text-nowrap" style={{ fontSize: "0.8rem" }} onClick={() => deleteChat(currentChat._id)}>Unfriend</Button>
                                 <Button 
-                                    size="sm"
-                                    variant={isUserCurrentlyBlocked ? "danger" : "outline-danger"}
-                                    className="rounded-pill px-3 py-1 text-nowrap"
-                                    style={{ fontSize: "0.8rem", backgroundColor: isUserCurrentlyBlocked ? "#ef4444" : "transparent", color: "#ffffff" }}
-                                    onClick={() => toggleBlockUser(recipientId)}
+                                    size="sm" 
+                                    className="rounded-pill px-3 py-1 text-nowrap d-flex align-items-center gap-1 btn-green-call-outline" 
+                                    style={{ fontSize: "0.8rem" }} 
+                                    onClick={() => initiateCall(recipient._id, recipient.name, recipient.profilePic, true)}
                                 >
-                                    {isUserCurrentlyBlocked ? "Unblock" : "Block"}
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+                                    <span>Call</span>
                                 </Button>
+                                <Button 
+                                    size="sm" 
+                                    className="rounded-pill px-3 py-1 text-nowrap d-flex align-items-center gap-1 btn-green-call-outline" 
+                                    style={{ fontSize: "0.8rem" }} 
+                                    onClick={() => initiateCall(recipient._id, recipient.name, recipient.profilePic, false)}
+                                >
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>
+                                    <span>Video</span>
+                                </Button>
+                                <Dropdown align="end">
+                                    <Dropdown.Toggle variant="link" className="dropdown-three-dots p-0 border-0">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                            <circle cx="12" cy="12" r="1.5"></circle>
+                                            <circle cx="12" cy="5" r="1.5"></circle>
+                                            <circle cx="12" cy="19" r="1.5"></circle>
+                                        </svg>
+                                    </Dropdown.Toggle>
+                                    <Dropdown.Menu variant="dark" style={{ backgroundColor: "var(--bg-surface)", border: "1px solid var(--accent-border)", fontSize: "0.85rem" }}>
+                                        <Dropdown.Item onClick={() => clearMessages(currentChat._id)}>🧹 Clear Log</Dropdown.Item>
+                                        <Dropdown.Item className="text-danger" onClick={() => deleteChat(currentChat._id)}>💔 Unfriend</Dropdown.Item>
+                                        <Dropdown.Item className="text-danger" onClick={() => toggleBlockUser(recipientId)}>
+                                            {isUserCurrentlyBlocked ? "🔓 Unblock" : "🚫 Block"}
+                                        </Dropdown.Item>
+                                    </Dropdown.Menu>
+                                </Dropdown>
                             </>
                         )}
 
                         {currentChat.isGroup && (
-                            <Dropdown align="end">
-                                <Dropdown.Toggle size="sm" variant="outline-accent" className="rounded-pill px-3 py-1 text-nowrap" style={{ fontSize: "0.8rem" }}>
-                                    ⚙️ Manage Group
-                                </Dropdown.Toggle>
-                                <Dropdown.Menu variant="dark" style={{ backgroundColor: "var(--bg-surface)", border: "1px solid var(--accent-border)", fontSize: "0.85rem" }}>
-                                    {canAddMembers && <Dropdown.Item onClick={() => openManageModal("add")}>➕ Add Member</Dropdown.Item>}
-                                    {isMainAdmin && (
-                                        <>
-                                            <Dropdown.Item onClick={() => openManageModal("promote")}>⬆️ Promote to Sub-Admin</Dropdown.Item>
-                                            <Dropdown.Item onClick={() => openManageModal("demote")}>⬇️ Demote Sub-Admin</Dropdown.Item>
-                                        </>
-                                    )}
-                                    {(isMainAdmin || isSubAdmin) && (
-                                        <Dropdown.Item onClick={() => openManageModal("remove")}>❌ Remove Member</Dropdown.Item>
-                                    )}
-                                    {(isMainAdmin || isSubAdmin) && <Dropdown.Divider style={{ borderColor: "var(--accent-border)" }} />}
-                                    <Dropdown.Item className="text-danger fw-bold" onClick={() => openManageModal("confirm_leave")}>🚪 Leave Group</Dropdown.Item>
-                                </Dropdown.Menu>
-                            </Dropdown>
+                            <>
+                                <Button 
+                                    size="sm" 
+                                    className="rounded-pill px-3 py-1 text-nowrap d-flex align-items-center gap-1 btn-green-call-outline" 
+                                    style={{ fontSize: "0.8rem" }} 
+                                    onClick={() => {
+                                        setGroupCallType("voice");
+                                        setShowGroupCallModal(true);
+                                    }}
+                                >
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+                                    <span>Call</span>
+                                </Button>
+                                <Button 
+                                    size="sm" 
+                                    className="rounded-pill px-3 py-1 text-nowrap d-flex align-items-center gap-1 btn-green-call-outline" 
+                                    style={{ fontSize: "0.8rem" }} 
+                                    onClick={() => {
+                                        setGroupCallType("video");
+                                        setShowGroupCallModal(true);
+                                    }}
+                                >
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>
+                                    <span>Video</span>
+                                </Button>
+                                <Dropdown align="end">
+                                    <Dropdown.Toggle variant="link" className="dropdown-three-dots p-0 border-0">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                            <circle cx="12" cy="12" r="1.5"></circle>
+                                            <circle cx="12" cy="5" r="1.5"></circle>
+                                            <circle cx="12" cy="19" r="1.5"></circle>
+                                        </svg>
+                                    </Dropdown.Toggle>
+                                    <Dropdown.Menu variant="dark" style={{ backgroundColor: "var(--bg-surface)", border: "1px solid var(--accent-border)", fontSize: "0.85rem" }}>
+                                        <Dropdown.Item onClick={() => clearMessages(currentChat._id)}>🧹 Clear Log</Dropdown.Item>
+                                        {(canAddMembers || isMainAdmin || isSubAdmin) && <Dropdown.Divider style={{ borderColor: "var(--accent-border)" }} />}
+                                        {canAddMembers && <Dropdown.Item onClick={() => openManageModal("add")}>➕ Add Member</Dropdown.Item>}
+                                        {isMainAdmin && (
+                                            <>
+                                                <Dropdown.Item onClick={() => openManageModal("promote")}>⬆️ Promote to Sub-Admin</Dropdown.Item>
+                                                <Dropdown.Item onClick={() => openManageModal("demote")}>⬇️ Demote Sub-Admin</Dropdown.Item>
+                                            </>
+                                        )}
+                                        {(isMainAdmin || isSubAdmin) && (
+                                            <Dropdown.Item onClick={() => openManageModal("remove")}>❌ Remove Member</Dropdown.Item>
+                                        )}
+                                        <Dropdown.Divider style={{ borderColor: "var(--accent-border)" }} />
+                                        <Dropdown.Item className="text-danger fw-bold" onClick={() => openManageModal("confirm_leave")}>🚪 Leave Group</Dropdown.Item>
+                                    </Dropdown.Menu>
+                                </Dropdown>
+                            </>
                         )}
                     </div>
                 </div>
+
 
                 {/* --- MESSAGES LOG --- */}
                 <Stack gap={3} className="messages-box px-2" style={{ overflowY: "auto", flexGrow: 1 }}>
@@ -565,6 +646,78 @@ const ChatBox = () => {
                         </Stack>
                     )}
 
+                </Modal.Body>
+            </Modal>
+
+            {/* ========================================== */}
+            {/* GROUP CALL MODAL DIRECT DIAL               */}
+            {/* ========================================== */}
+            <Modal show={showGroupCallModal} onHide={() => setShowGroupCallModal(false)} centered contentClassName="card-material text-white" style={{ border: "1px solid var(--accent-border)" }}>
+                <Modal.Header closeButton closeVariant="white" style={{ borderBottom: "1px solid var(--accent-border)" }}>
+                    <Modal.Title className="fs-5">
+                        {groupCallType === "voice" ? "📞 Start Voice Call" : "📹 Start Video Call"}
+                    </Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    <p className="text-muted mb-3" style={{ fontSize: "0.85rem" }}>
+                        Select a member from the group to call:
+                    </p>
+                    <Stack gap={2} style={{ maxHeight: "300px", overflowY: "auto" }}>
+                        {groupMemberProfiles.filter(m => m._id !== user?._id).length === 0 ? (
+                            <p className="text-muted text-center py-3">No other members in this group.</p>
+                        ) : (
+                            groupMemberProfiles
+                                .filter(m => m._id !== user?._id)
+                                .map(member => {
+                                    const isMemberOnline = onlineUsers?.some((u) => u.userId === member._id);
+                                    return (
+                                        <div key={member._id} className="d-flex align-items-center justify-content-between p-2 rounded-3" style={{ backgroundColor: "var(--bg-main)" }}>
+                                            <div className="d-flex align-items-center gap-2">
+                                                <div className="position-relative">
+                                                    {member.profilePic ? (
+                                                        <img 
+                                                            src={member.profilePic} 
+                                                            alt="Avatar" 
+                                                            style={{ width: "32px", height: "32px", borderRadius: "50%", objectFit: "cover" }} 
+                                                        />
+                                                    ) : (
+                                                        <div className="d-flex justify-content-center align-items-center rounded-circle text-white fw-bold" style={{ width: "32px", height: "32px", fontSize: "0.75rem", backgroundColor: "var(--accent-secondary)" }}>
+                                                            {member.name?.charAt(0).toUpperCase()}
+                                                        </div>
+                                                    )}
+                                                    <span className="position-absolute bottom-0 end-0 rounded-circle" style={{ width: "8px", height: "8px", backgroundColor: isMemberOnline ? "var(--online-indicator)" : "#64748b", border: "1.5px solid var(--bg-surface)" }} />
+                                                </div>
+                                                <div className="d-flex flex-column">
+                                                    <span style={{ fontSize: "0.9rem", lineHeight: "1.2" }} className="text-white fw-semibold">{member.name}</span>
+                                                    <span style={{ fontSize: "0.75rem", color: "var(--text-secondary)" }}>@{member.userId}</span>
+                                                </div>
+                                            </div>
+                                            <Button 
+                                                size="sm" 
+                                                className="rounded-pill px-3 py-1 btn-green-call-outline d-flex align-items-center gap-1" 
+                                                style={{ fontSize: "0.75rem" }} 
+                                                onClick={() => {
+                                                    initiateCall(member._id, member.name, member.profilePic, groupCallType === "voice");
+                                                    setShowGroupCallModal(false);
+                                                }}
+                                            >
+                                                {groupCallType === "voice" ? (
+                                                    <>
+                                                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+                                                        <span>Call</span>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>
+                                                        <span>Video</span>
+                                                    </>
+                                                )}
+                                            </Button>
+                                        </div>
+                                    );
+                                })
+                        )}
+                    </Stack>
                 </Modal.Body>
             </Modal>
         </>

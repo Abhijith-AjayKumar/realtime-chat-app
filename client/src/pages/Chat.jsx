@@ -10,7 +10,7 @@ import Profile from "./Profile";
 
 const Chat = () => {
     const { user } = useContext(AuthContext);
-    const { userChats, isUserChatsLoading, updateCurrentChat, allUsers } = useContext(ChatContext);
+    const { currentChat, userChats, isUserChatsLoading, updateCurrentChat, allUsers } = useContext(ChatContext);
     
     const location = useLocation();
     const navigate = useNavigate();
@@ -43,7 +43,7 @@ const Chat = () => {
         <Container fluid="md" className="px-3 pb-4">
             {!isProfilePage && <Row className="mb-3"><Col xs={12}><SearchUser /></Col></Row>} 
             <Row className="g-4">
-                <Col xs={12} md={4} className={isProfilePage ? "d-none d-md-block" : ""}>
+                <Col xs={12} md={4} className={isProfilePage ? "d-none d-md-block" : (currentChat ? "d-none d-md-block" : "")}>
                     <Stack gap={2} className="p-2 card-material" style={{ maxHeight: "75vh", overflowY: "auto" }}>
                         <div className="p-2 mb-1" style={{ borderBottom: "1px solid var(--accent-border)" }}>
                             <h5 className="m-0" style={{ color: "var(--text-secondary)", fontSize: "0.95rem", fontWeight: "600", textTransform: "uppercase" }}>Active Chats</h5>
@@ -76,7 +76,7 @@ const Chat = () => {
                         
                     </Stack>
                 </Col>
-                <Col xs={12} md={8}>
+                <Col xs={12} md={8} className={isProfilePage ? "" : (currentChat ? "" : "d-none d-md-block")}>
                     {isProfilePage ? <Profile /> : <ChatBox />}
                 </Col>
             </Row>
