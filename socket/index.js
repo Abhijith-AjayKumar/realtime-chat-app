@@ -15,12 +15,13 @@ const initSocketServer = (expressServer) => {
 
         // 1. Synchronized User Registration Pipeline
         socket.on("registerUser", (userId) => {
-            if (!onlineUsers.some((user) => user.userId === userId)) {
-                onlineUsers.push({
-                    userId,
-                    socketId: socket.id,
-                });
-            }
+            // Remove any existing socket mapping for this user to handle reconnection cleanly
+            onlineUsers = onlineUsers.filter((user) => user.userId !== userId);
+            
+            onlineUsers.push({
+                userId,
+                socketId: socket.id,
+            });
             console.log("Current Live Roster:", onlineUsers);
             // Broadcast the active users list globally
             io.emit("getOnlineUsers", onlineUsers);
