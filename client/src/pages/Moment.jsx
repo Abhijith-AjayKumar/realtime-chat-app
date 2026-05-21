@@ -241,12 +241,12 @@ const MomentPage = () => {
     return (
         <Container className="py-4 text-white" style={{ minHeight: "80vh" }}>
             <Row className="justify-content-center">
-                <Col md={8} lg={6}>
+                <Col xs={12} sm={10} md={8} lg={6}>
                     <div className="d-flex align-items-center justify-content-between mb-4 pb-2" style={{ borderBottom: "1px solid var(--accent-border)" }}>
-                        <h3 className="m-0 text-white fw-bold">✨ Moment Updates</h3>
+                        <h3 className="m-0 text-white fw-bold fs-5 fs-sm-3">✨ Moment Updates</h3>
                         <Button 
                             variant="primary" 
-                            className="rounded-pill px-4" 
+                            className="rounded-pill px-3 px-sm-4 py-1 py-sm-2 moment-add-btn" 
                             style={{ backgroundColor: "var(--accent-primary)", border: "none" }}
                             onClick={() => setShowUploadModal(true)}
                         >

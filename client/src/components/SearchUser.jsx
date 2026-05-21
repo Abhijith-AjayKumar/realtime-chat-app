@@ -109,21 +109,21 @@ const SearchUser = () => {
 
                 {activeMode === "search" && (
                     <Form onSubmit={handleSearch} className="mt-3 pt-3 border-top" style={{ borderColor: "rgba(255,255,255,0.05)" }}>
-                        <Stack direction="horizontal" gap={3} style={{ maxWidth: "600px" }}>
+                        <Stack direction="horizontal" className="gap-2 gap-sm-3" style={{ maxWidth: "600px" }}>
                             <div className="position-relative d-flex align-items-center flex-grow-1">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16" style={{ color: "#a3a3a3", position: "absolute", left: "16px" }}>
                                     <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
                                 </svg>
                                 <Form.Control type="text" placeholder="Enter ID..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="search-control" style={{ ...inputStyle, padding: "0.65rem 1.4rem 0.65rem 2.8rem", width: "100%" }} />
                             </div>
-                            <Button type="submit" style={{ borderRadius: "50px", backgroundColor: "var(--accent-primary)", border: "none" }}> Search </Button>
+                            <Button type="submit" style={{ borderRadius: "50px", backgroundColor: "var(--accent-primary)", border: "none" }} className="px-3 px-sm-4 py-1.5 py-sm-2 search-btn"> Search </Button>
                         </Stack>
                     </Form>
                 )}
 
                 {/* --- SEARCH RESULT DISPLAY --- */}
                 {activeMode === "search" && searchedUser && (
-                    <Stack direction="horizontal" gap={3} className="mt-3 p-2 align-items-center justify-content-between" style={{ backgroundColor: "var(--bg-main)", borderRadius: "50px", maxWidth: "600px", border: "1px solid var(--accent-border)" }}>
+                    <Stack direction="horizontal" className="gap-2 gap-sm-3 mt-3 p-2 align-items-center justify-content-between search-result-stack" style={{ backgroundColor: "var(--bg-main)", borderRadius: "50px", maxWidth: "600px", border: "1px solid var(--accent-border)" }}>
                         <div className="d-flex align-items-center gap-2 ps-2">
                             <div className="d-flex justify-content-center align-items-center" style={{ height: "34px", width: "34px", borderRadius: "50%", backgroundColor: "var(--accent-primary)", color: "white", fontWeight: "bold" }}>{searchedUser.name.charAt(0).toUpperCase()}</div>
                             <div className="d-flex flex-column">
@@ -131,9 +131,9 @@ const SearchUser = () => {
                                 <span style={{ color: "#a3a3a3", fontSize: "0.75rem" }}>@{searchedUser.userId}</span>
                             </div>
                         </div>
-                        <div className="d-flex gap-2">
-                            <Button variant="success" size="sm" className="py-2 px-3" onClick={handleAddFriend} style={{ borderRadius: "50px" }}>🤝 Add</Button>
-                            <Button variant={blockedUsersList.includes(searchedUser._id) ? "danger" : "outline-danger"} size="sm" className="py-2 px-3" onClick={() => toggleBlockUser(searchedUser._id)} style={{ borderRadius: "50px" }}>
+                        <div className="d-flex gap-1 gap-sm-2">
+                            <Button variant="success" size="sm" className="py-1 px-2.5 py-sm-2 px-sm-3 search-action-btn" onClick={handleAddFriend} style={{ borderRadius: "50px" }}>🤝 Add</Button>
+                            <Button variant={blockedUsersList.includes(searchedUser._id) ? "danger" : "outline-danger"} size="sm" className="py-1 px-2.5 py-sm-2 px-sm-3 search-action-btn" onClick={() => toggleBlockUser(searchedUser._id)} style={{ borderRadius: "50px" }}>
                                 {blockedUsersList.includes(searchedUser._id) ? "Unblock" : "Block"}
                             </Button>
                         </div>
@@ -146,14 +146,16 @@ const SearchUser = () => {
                         <Stack gap={3} style={{ maxWidth: "600px" }}>
                             <Form.Control type="text" placeholder="📁 Group name..." value={groupName} onChange={(e) => setGroupName(e.target.value)} style={inputStyle} />
                             <Form onSubmit={handleAddMemberToPendingGroup}>
-                                <Stack direction="horizontal" gap={3}>
+                                <Stack direction="horizontal" className="gap-2 gap-sm-3">
                                     <div className="position-relative d-flex align-items-center flex-grow-1">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16" style={{ color: "#a3a3a3", position: "absolute", left: "16px" }}>
                                             <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
                                         </svg>
                                         <Form.Control type="text" placeholder="Search ID..." value={groupMemberIdInput} onChange={(e) => setGroupMemberIdInput(e.target.value)} className="search-control" style={{ ...inputStyle, padding: "0.65rem 1.4rem 0.65rem 2.8rem", width: "100%" }} />
                                     </div>
-                                    <Button type="submit" variant="outline-secondary" style={{ borderRadius: "50px" }}>➕ Add Member</Button>
+                                    <Button type="submit" variant="outline-secondary" style={{ borderRadius: "50px" }} className="px-2.5 px-sm-3 py-1.5 py-sm-2 text-nowrap add-member-btn">
+                                        ➕ <span className="d-none d-sm-inline">Add Member</span><span className="d-inline d-sm-none">Add</span>
+                                    </Button>
                                 </Stack>
                             </Form>
                             

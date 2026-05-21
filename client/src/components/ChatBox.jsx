@@ -168,7 +168,7 @@ const ChatBox = () => {
                             style={{ textDecoration: "none" }}
                             onClick={() => updateCurrentChat(null)}
                         >
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                                 <line x1="19" y1="12" x2="5" y2="12"></line>
                                 <polyline points="12 19 5 12 12 5"></polyline>
                             </svg>
@@ -209,11 +209,11 @@ const ChatBox = () => {
                                     )}
 
                                     {!currentChat.isGroup ? (
-                                        <small style={{ color: isRecipientOnline ? "var(--online-indicator)" : "var(--text-secondary)", fontSize: "0.75rem", fontWeight: "500" }}>
+                                        <small className="d-none d-sm-inline" style={{ color: isRecipientOnline ? "var(--online-indicator)" : "var(--text-secondary)", fontSize: "0.75rem", fontWeight: "500" }}>
                                             {isRecipientOnline ? "• Online" : "Offline"}
                                         </small>
                                     ) : (
-                                        <small style={{ color: "var(--text-secondary)", fontSize: "0.75rem" }}>
+                                        <small className="d-none d-sm-inline" style={{ color: "var(--text-secondary)", fontSize: "0.75rem" }}>
                                             {currentChat.members.length} Members
                                         </small>
                                     )}

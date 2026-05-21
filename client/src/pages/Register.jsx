@@ -33,7 +33,7 @@ const Register = () => {
         // Added the onSubmit handler here!
         <Form onSubmit={registerUser}>
             <Row style={{ justifyContent: "center", paddingTop: "10%" }}>
-                <Col xs={6}>
+                <Col xs={11} sm={8} md={6} lg={4}>
                     <Stack gap={3}>
                         <h2 style={{ color: "var(--text-primary)" }}>Register</h2>
 

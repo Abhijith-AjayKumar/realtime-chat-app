@@ -437,6 +437,9 @@ body {
     --chat-timestamp-size: 0.65rem;
     --input-btn-size: 38px;
     --input-padding: 0.5rem 1rem;
+    --profile-padding: 12px;
+    --profile-info-fs: 0.8rem;
+    --moment-btn-fs: 0.75rem;
   }
 
   .chat-container {
@@ -466,6 +469,10 @@ body {
   .form-control {
     font-size: 0.85rem !important;
     padding: 0.5rem 1rem !important;
+  }
+
+  .form-control.search-control {
+    padding-left: 2.8rem !important;
   }
 }
 
@@ -544,6 +551,9 @@ body {
   border: 1px solid var(--accent-border);
   letter-spacing: 0.3px;
 }
+.profile-action-btn {
+  padding: 0.4rem 1rem !important;
+}
 
 @media (max-width: 575.98px) {
   .chat-header-avatar {
@@ -573,5 +583,31 @@ body {
   .chat-header-userid {
     font-size: 0.6rem !important;
     padding: 1px 6px !important;
+  }
+  .profile-action-btn {
+    padding: 0.25rem 0.4rem !important;
+    font-size: 0.75rem !important;
+    min-width: 26px;
+    height: 26px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .search-result-stack {
+    border-radius: 20px !important;
+    padding: 8px 12px !important;
+    gap: 8px !important;
+  }
+  .search-action-btn {
+    padding: 0.25rem 0.5rem !important;
+    font-size: 0.75rem !important;
+  }
+  .moment-add-btn {
+    padding: 0.3rem 0.6rem !important;
+    font-size: 0.75rem !important;
+  }
+  .add-member-btn {
+    padding: 0.3rem 0.5rem !important;
+    font-size: 0.75rem !important;
   }
 }

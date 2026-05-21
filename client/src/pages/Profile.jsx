@@ -103,24 +103,24 @@ const Profile = () => {
     const blockedUserDetails = allUsers?.filter(u => blockedUsersList?.includes(u._id)) || [];
 
     return (
-        <Stack gap={4} className="chat-box" style={{ backgroundColor: "var(--bg-surface)", borderRadius: "10px", padding: "20px", width: "100%", minHeight: "75vh", maxHeight: "75vh", overflowY: "auto", display: "flex", flexDirection: "column", boxShadow: "0 4px 12px rgba(16, 6, 3, 0.6)" }}>
+        <Stack className="gap-3 gap-sm-4" style={{ backgroundColor: "var(--bg-surface)", borderRadius: "var(--radius-container)", padding: "var(--profile-padding, 20px)", width: "100%", minHeight: "75vh", maxHeight: "75vh", overflowY: "auto", display: "flex", flexDirection: "column", boxShadow: "0 4px 12px rgba(16, 6, 3, 0.6)" }}>
             
             {/* HEADER */}
             <div className="chat-header d-flex justify-content-between align-items-center" style={{ borderBottom: "1px solid var(--accent-border)", paddingBottom: "10px" }}>
-                <div className="d-flex align-items-center gap-3">
-                    <Button variant="outline-secondary" size="sm" onClick={() => navigate("/")} style={{ border: "none" }}>
-                        &larr; Back
+                <div className="d-flex align-items-center gap-1 gap-sm-3">
+                    <Button variant="outline-secondary" size="sm" onClick={() => navigate("/")} className="px-2 py-1 back-btn" style={{ border: "none" }}>
+                        &larr; <span className="d-none d-sm-inline">Back</span>
                     </Button>
-                    <strong style={{ color: "var(--text-primary)", fontSize: "1.2rem" }}>Profile Settings</strong>
+                    <strong style={{ color: "var(--text-primary)" }} className="fs-6 fs-sm-5 text-white fw-bold mb-0">Profile Settings</strong>
                 </div>
-                <Button variant="danger" size="sm" onClick={logoutUser}>Logout</Button>
+                <Button variant="danger" size="sm" className="px-2 py-1 logout-btn" onClick={logoutUser}>Logout</Button>
             </div>
 
             {profileError && <Alert variant="danger">{profileError}</Alert>}
             {profileSuccess && <Alert variant="success">{profileSuccess}</Alert>}
 
             {/* PROFILE PICTURE COMPONENT */}
-            <div className="d-flex align-items-center gap-4 p-3 rounded-3" style={{ backgroundColor: "var(--bg-main)", border: "1px solid var(--accent-border)" }}>
+            <div className="d-flex flex-column flex-sm-row align-items-center text-center text-sm-start gap-3 gap-sm-4 p-2 p-sm-3 rounded-3" style={{ backgroundColor: "var(--bg-main)", border: "1px solid var(--accent-border)" }}>
                 <div style={{ position: "relative", width: "80px", height: "80px" }}>
                     {formData.profilePic ? (
                         <img 
@@ -134,9 +134,9 @@ const Profile = () => {
                         </div>
                     )}
                 </div>
-                <Stack gap={2}>
-                    <strong style={{ color: "var(--text-primary)", fontSize: "1.1rem" }}>Profile Picture</strong>
-                    <div className="d-flex gap-2">
+                <Stack gap={2} className="align-items-center align-items-sm-start">
+                    <strong style={{ color: "var(--text-primary)", fontSize: "1.05rem" }}>Profile Picture</strong>
+                    <div className="d-flex justify-content-center justify-content-sm-start gap-2">
                         <label className="btn btn-outline-light btn-sm rounded-pill px-3 m-0" style={{ cursor: "pointer" }}>
                             Upload Image
                             <input 
@@ -152,7 +152,7 @@ const Profile = () => {
                             </Button>
                         )}
                     </div>
-                    <small style={{ color: "var(--text-secondary)", fontSize: "0.75rem" }}>
+                    <small style={{ color: "var(--text-secondary)", fontSize: "0.75rem" }} className="text-center text-sm-start">
                         JPG, PNG or GIF. Max 2MB. (Requires password verification below to save)
                     </small>
                 </Stack>
@@ -185,7 +185,7 @@ const Profile = () => {
                             </>
                         ) : (
                             <div className="w-100">
-                                <Stack direction="horizontal" gap={2}>
+                                <Stack direction="horizontal" gap={1} className="gap-sm-2">
                                     <div className="position-relative flex-grow-1">
                                         <span className="position-absolute top-50 translate-middle-y" style={{ left: "12px", color: "var(--accent-primary)", fontWeight: "bold" }}>@</span>
                                         <Form.Control
@@ -199,17 +199,21 @@ const Profile = () => {
                                     </div>
                                     <Button 
                                         variant="success" 
+                                        size="sm"
+                                        className="profile-action-btn"
                                         onClick={handleSaveId}
                                         disabled={isIdUpdating || !newIdInput.trim()}
                                     >
-                                        {isIdUpdating ? "..." : "Save"}
+                                        {isIdUpdating ? "..." : <><span className="d-none d-sm-inline">Save</span><span className="d-inline d-sm-none">✓</span></>}
                                     </Button>
                                     <Button 
                                         variant="outline-secondary" 
+                                        size="sm"
+                                        className="profile-action-btn"
                                         onClick={() => setIsEditingId(false)}
                                         disabled={isIdUpdating}
                                     >
-                                        Cancel
+                                        <span className="d-none d-sm-inline">Cancel</span><span className="d-inline d-sm-none">✗</span>
                                     </Button>
                                 </Stack>
                                     <small style={{ color: "#a3a3a3", display: "block", marginTop: "8px", fontSize: "0.8rem" }}>
@@ -238,7 +242,7 @@ const Profile = () => {
                     </Form.Group>
 
                     <hr style={{ borderColor: "var(--accent-border)" }} className="mt-2" />
-                    <p style={{ color: "var(--text-secondary)", fontSize: "0.9rem", marginBottom: 0 }}>Security Verification required to make changes below:</p>
+                    <p style={{ color: "var(--text-secondary)", fontSize: "var(--profile-info-fs, 0.9rem)", marginBottom: 0 }}>Security Verification required to make changes below:</p>
 
                     <Form.Group>
                         <Form.Label style={{ color: "var(--text-secondary)" }}>Current Password</Form.Label>
