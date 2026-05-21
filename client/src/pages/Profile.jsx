@@ -194,7 +194,7 @@ const Profile = () => {
                                             onChange={(e) => setNewIdInput(e.target.value)}
                                             disabled={isIdUpdating}
                                             className="search-control"
-                                            style={inputStyle}
+                                            style={{ ...inputStyle, paddingLeft: "2.5rem" }}
                                         />
                                     </div>
                                     <Button 

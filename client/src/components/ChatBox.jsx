@@ -161,7 +161,7 @@ const ChatBox = () => {
             <Stack gap={4} className="chat-container card-material p-3" style={{ height: "75vh", position: "relative" }}>
                 {/* --- HEADER --- */}
                 <div className="d-flex align-items-center justify-content-between pb-2 pb-sm-3 gap-2 gap-sm-3" style={{ borderBottom: "1px solid var(--accent-border)" }}>
-                    <div className="d-flex align-items-center gap-1 gap-sm-3">
+                    <div className="d-flex align-items-center gap-0 gap-sm-3">
                         <Button 
                             variant="link" 
                             className="d-md-none p-0 text-white border-0" 
