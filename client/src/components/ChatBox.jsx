@@ -161,10 +161,10 @@ const ChatBox = () => {
             <Stack gap={4} className="chat-container card-material p-3" style={{ height: "75vh", position: "relative" }}>
                 {/* --- HEADER --- */}
                 <div className="d-flex align-items-center justify-content-between pb-2 pb-sm-3 gap-2 gap-sm-3" style={{ borderBottom: "1px solid var(--accent-border)" }}>
-                    <div className="d-flex align-items-center gap-2 gap-sm-3">
+                    <div className="d-flex align-items-center gap-1 gap-sm-3">
                         <Button 
                             variant="link" 
-                            className="d-md-none p-0 text-white border-0 me-1" 
+                            className="d-md-none p-0 text-white border-0" 
                             style={{ textDecoration: "none" }}
                             onClick={() => updateCurrentChat(null)}
                         >
@@ -173,49 +173,51 @@ const ChatBox = () => {
                                 <polyline points="12 19 5 12 12 5"></polyline>
                             </svg>
                         </Button>
-                        <div className="position-relative">
-                            {!currentChat.isGroup && recipient?.profilePic ? (
-                                <img 
-                                    src={recipient.profilePic} 
-                                    alt="Avatar" 
-                                    className="chat-header-avatar"
-                                />
-                            ) : (
-                                <div className="chat-header-avatar-placeholder d-flex justify-content-center align-items-center rounded-circle text-white fw-bold" style={{ backgroundColor: currentChat.isGroup ? "var(--accent-secondary)" : "var(--accent-primary)" }}>
-                                    {currentChat.isGroup ? currentChat.groupName?.charAt(0).toUpperCase() : recipient?.name?.charAt(0).toUpperCase()}
-                                </div>
-                            )}
-                            {!currentChat.isGroup && (
-                                <span className="position-absolute bottom-0 end-0 rounded-circle chat-header-online-status" style={{ backgroundColor: isRecipientOnline ? "var(--online-indicator)" : "#64748b", border: "2px solid var(--bg-surface)" }} />
-                            )}
-                        </div>
-                        <div>
-                            {/* Line 1: Just the Name and Admin Badges */}
-                            <div className="d-flex align-items-center flex-wrap gap-1">
-                                <h5 className="m-0 text-white fw-bold chat-header-title">{currentChat.isGroup ? currentChat.groupName : recipient?.name}</h5>
-                                {currentChat.isGroup && isMainAdmin && <Badge bg="danger" className="chat-header-badge">Admin</Badge>}
-                                {currentChat.isGroup && isSubAdmin && <Badge bg="warning" text="dark" className="chat-header-badge">Sub-Admin</Badge>}
-                            </div>
-
-                            {/* Line 2: User ID Pill + Online Status (Stacked on mobile, side-by-side on tablet/desktop) */}
-                            <div className="d-flex flex-column flex-sm-row align-items-start align-items-sm-center gap-1 gap-sm-2 mt-1">
-                                
-                                {/* 🔥 SLEEK UI: User ID styled as a modern dark pill */}
-                                {!currentChat.isGroup && recipient?.userId && (
-                                    <span className="chat-header-userid">
-                                        @{recipient.userId}
-                                    </span>
-                                )}
-
-                                {!currentChat.isGroup ? (
-                                    <small style={{ color: isRecipientOnline ? "var(--online-indicator)" : "var(--text-secondary)", fontSize: "0.75rem", fontWeight: "500" }}>
-                                        {isRecipientOnline ? "• Active Now" : "Offline"}
-                                    </small>
+                        <div className="d-flex align-items-center gap-2 gap-sm-3">
+                            <div className="position-relative">
+                                {!currentChat.isGroup && recipient?.profilePic ? (
+                                    <img 
+                                        src={recipient.profilePic} 
+                                        alt="Avatar" 
+                                        className="chat-header-avatar"
+                                    />
                                 ) : (
-                                    <small style={{ color: "var(--text-secondary)", fontSize: "0.75rem" }}>
-                                        {currentChat.members.length} Members
-                                    </small>
+                                    <div className="chat-header-avatar-placeholder d-flex justify-content-center align-items-center rounded-circle text-white fw-bold" style={{ backgroundColor: currentChat.isGroup ? "var(--accent-secondary)" : "var(--accent-primary)" }}>
+                                        {currentChat.isGroup ? currentChat.groupName?.charAt(0).toUpperCase() : recipient?.name?.charAt(0).toUpperCase()}
+                                    </div>
                                 )}
+                                {!currentChat.isGroup && (
+                                    <span className="position-absolute bottom-0 end-0 rounded-circle chat-header-online-status" style={{ backgroundColor: isRecipientOnline ? "var(--online-indicator)" : "#64748b", border: "2px solid var(--bg-surface)" }} />
+                                )}
+                            </div>
+                            <div>
+                                {/* Line 1: Just the Name and Admin Badges */}
+                                <div className="d-flex align-items-center flex-wrap gap-1">
+                                    <h5 className="m-0 text-white fw-bold chat-header-title">{currentChat.isGroup ? currentChat.groupName : recipient?.name}</h5>
+                                    {currentChat.isGroup && isMainAdmin && <Badge bg="danger" className="chat-header-badge">Admin</Badge>}
+                                    {currentChat.isGroup && isSubAdmin && <Badge bg="warning" text="dark" className="chat-header-badge">Sub-Admin</Badge>}
+                                </div>
+
+                                {/* Line 2: User ID Pill + Online Status (Non-stacking wrap layout) */}
+                                <div className="d-flex align-items-center flex-wrap gap-1 gap-sm-2 mt-1">
+                                    
+                                    {/* 🔥 SLEEK UI: User ID styled as a modern dark pill */}
+                                    {!currentChat.isGroup && recipient?.userId && (
+                                        <span className="chat-header-userid">
+                                            @{recipient.userId}
+                                        </span>
+                                    )}
+
+                                    {!currentChat.isGroup ? (
+                                        <small style={{ color: isRecipientOnline ? "var(--online-indicator)" : "var(--text-secondary)", fontSize: "0.75rem", fontWeight: "500" }}>
+                                            {isRecipientOnline ? "• Online" : "Offline"}
+                                        </small>
+                                    ) : (
+                                        <small style={{ color: "var(--text-secondary)", fontSize: "0.75rem" }}>
+                                            {currentChat.members.length} Members
+                                        </small>
+                                    )}
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -226,7 +228,7 @@ const ChatBox = () => {
                             <>
                                 <Button 
                                     size="sm" 
-                                    className="d-none d-sm-inline-flex btn-responsive-action rounded-pill px-3 py-1 text-nowrap align-items-center gap-1 btn-green-call-outline" 
+                                    className="d-inline-flex btn-responsive-action rounded-pill px-3 py-1 text-nowrap align-items-center gap-1 btn-green-call-outline" 
                                     style={{ fontSize: "0.8rem" }} 
                                     onClick={() => initiateCall(recipient._id, recipient.name, recipient.profilePic, true)}
                                 >
@@ -235,7 +237,7 @@ const ChatBox = () => {
                                 </Button>
                                 <Button 
                                     size="sm" 
-                                    className="d-none d-sm-inline-flex btn-responsive-action rounded-pill px-3 py-1 text-nowrap align-items-center gap-1 btn-green-call-outline" 
+                                    className="d-inline-flex btn-responsive-action rounded-pill px-3 py-1 text-nowrap align-items-center gap-1 btn-green-call-outline" 
                                     style={{ fontSize: "0.8rem" }} 
                                     onClick={() => initiateCall(recipient._id, recipient.name, recipient.profilePic, false)}
                                 >
@@ -251,13 +253,6 @@ const ChatBox = () => {
                                         </svg>
                                     </Dropdown.Toggle>
                                     <Dropdown.Menu variant="dark" style={{ backgroundColor: "var(--bg-surface)", border: "1px solid var(--accent-border)", fontSize: "0.85rem" }}>
-                                        <Dropdown.Item className="d-sm-none" onClick={() => initiateCall(recipient._id, recipient.name, recipient.profilePic, true)}>
-                                            📞 Voice Call
-                                        </Dropdown.Item>
-                                        <Dropdown.Item className="d-sm-none" onClick={() => initiateCall(recipient._id, recipient.name, recipient.profilePic, false)}>
-                                            📹 Video Call
-                                        </Dropdown.Item>
-                                        <Dropdown.Divider className="d-sm-none" style={{ borderColor: "var(--accent-border)" }} />
                                         <Dropdown.Item onClick={() => clearMessages(currentChat._id)}>🧹 Clear Log</Dropdown.Item>
                                         <Dropdown.Item className="text-danger" onClick={() => deleteChat(currentChat._id)}>💔 Unfriend</Dropdown.Item>
                                         <Dropdown.Item className="text-danger" onClick={() => toggleBlockUser(recipientId)}>
@@ -272,7 +267,7 @@ const ChatBox = () => {
                             <>
                                 <Button 
                                     size="sm" 
-                                    className="d-none d-sm-inline-flex btn-responsive-action rounded-pill px-3 py-1 text-nowrap align-items-center gap-1 btn-green-call-outline" 
+                                    className="d-inline-flex btn-responsive-action rounded-pill px-3 py-1 text-nowrap align-items-center gap-1 btn-green-call-outline" 
                                     style={{ fontSize: "0.8rem" }} 
                                     onClick={() => {
                                         setGroupCallType("voice");
@@ -284,7 +279,7 @@ const ChatBox = () => {
                                 </Button>
                                 <Button 
                                     size="sm" 
-                                    className="d-none d-sm-inline-flex btn-responsive-action rounded-pill px-3 py-1 text-nowrap align-items-center gap-1 btn-green-call-outline" 
+                                    className="d-inline-flex btn-responsive-action rounded-pill px-3 py-1 text-nowrap align-items-center gap-1 btn-green-call-outline" 
                                     style={{ fontSize: "0.8rem" }} 
                                     onClick={() => {
                                         setGroupCallType("video");
@@ -303,19 +298,6 @@ const ChatBox = () => {
                                         </svg>
                                     </Dropdown.Toggle>
                                     <Dropdown.Menu variant="dark" style={{ backgroundColor: "var(--bg-surface)", border: "1px solid var(--accent-border)", fontSize: "0.85rem" }}>
-                                        <Dropdown.Item className="d-sm-none" onClick={() => {
-                                            setGroupCallType("voice");
-                                            setShowGroupCallModal(true);
-                                        }}>
-                                            📞 Start Group Voice Call
-                                        </Dropdown.Item>
-                                        <Dropdown.Item className="d-sm-none" onClick={() => {
-                                            setGroupCallType("video");
-                                            setShowGroupCallModal(true);
-                                        }}>
-                                            📹 Start Group Video Call
-                                        </Dropdown.Item>
-                                        <Dropdown.Divider className="d-sm-none" style={{ borderColor: "var(--accent-border)" }} />
                                         <Dropdown.Item onClick={() => clearMessages(currentChat._id)}>🧹 Clear Log</Dropdown.Item>
                                         {(canAddMembers || isMainAdmin || isSubAdmin) && <Dropdown.Divider style={{ borderColor: "var(--accent-border)" }} />}
                                         {canAddMembers && <Dropdown.Item onClick={() => openManageModal("add")}>➕ Add Member</Dropdown.Item>}
