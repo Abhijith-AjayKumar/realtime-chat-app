@@ -79,13 +79,31 @@ const SearchUser = () => {
             <Card.Body className="p-3">
                 <div className="p-1 rounded-pill" style={{ backgroundColor: "var(--bg-main)", width: "fit-content" }}>
                     <Stack direction="horizontal" gap={1}>
-                        <Button size="sm" onClick={() => handleModeToggle("search")} style={{ backgroundColor: activeMode === "search" ? "rgba(255, 255, 255, 0.15)" : "transparent", color: "#ffffff", border: "none", borderRadius: "50px", padding: "0.5rem 1.4rem", fontWeight: "500", display: "flex", alignItems: "center", gap: "6px" }}>
+                        <Button 
+                            size="sm" 
+                            onClick={() => handleModeToggle("search")} 
+                            className="search-user-tab-btn"
+                            style={{ 
+                                backgroundColor: activeMode === "search" ? "rgba(255, 255, 255, 0.15)" : "transparent", 
+                                color: "#ffffff" 
+                            }}
+                        >
                             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16" style={{ color: "#d1d5db" }}>
                                 <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
                             </svg>
                             Search User
                         </Button>
-                        <Button size="sm" onClick={() => handleModeToggle("group")} style={{ backgroundColor: activeMode === "group" ? "var(--accent-secondary)" : "transparent", color: activeMode === "group" ? "#ffffff" : "var(--text-secondary)", border: "none", borderRadius: "50px", padding: "0.5rem 1.4rem", fontWeight: "500" }}>👥 Create Group</Button>
+                        <Button 
+                            size="sm" 
+                            onClick={() => handleModeToggle("group")} 
+                            className="search-user-tab-btn"
+                            style={{ 
+                                backgroundColor: activeMode === "group" ? "var(--accent-secondary)" : "transparent", 
+                                color: activeMode === "group" ? "#ffffff" : "var(--text-secondary)" 
+                            }}
+                        >
+                            👥 Create Group
+                        </Button>
                     </Stack>
                 </div>
 

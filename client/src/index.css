@@ -409,3 +409,169 @@ body {
   color: var(--text-primary) !important;
   background: var(--bg-card-hover) !important;
 }
+
+/* Responsive Action Buttons */
+.btn-responsive-action {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 !important;
+  width: 32px !important;
+  height: 32px !important;
+  border-radius: 50% !important;
+}
+
+@media (min-width: 768px) {
+  .btn-responsive-action {
+    width: auto !important;
+    height: auto !important;
+    border-radius: var(--radius-pill) !important;
+    padding: 0.4rem 1rem !important;
+  }
+}
+
+/* Mobile responsive chat scaling */
+@media (max-width: 767.98px) {
+  :root {
+    --chat-font-size: 0.85rem;
+    --chat-timestamp-size: 0.65rem;
+    --input-btn-size: 38px;
+    --input-padding: 0.5rem 1rem;
+  }
+
+  .chat-container {
+    padding: 12px !important;
+    gap: 12px !important;
+  }
+
+  .chat-container h5 {
+    font-size: 0.95rem !important;
+  }
+
+  .chat-container small,
+  .chat-container .chat-status {
+    font-size: 0.65rem !important;
+  }
+
+  /* Compact padding for message bubbles */
+  .messages-box .px-3.py-2 {
+    padding: 6px 12px !important;
+  }
+
+  .messages-box div[style*="fontStyle: italic"] {
+    font-size: 0.7rem !important;
+    padding: 4px 10px !important;
+  }
+
+  .form-control {
+    font-size: 0.85rem !important;
+    padding: 0.5rem 1rem !important;
+  }
+}
+
+/* ==========================================================================
+   RESPONSIVE UI SCALING FOR MOBILE DEVICES
+   ========================================================================== */
+
+/* Responsive adjustments for NavBar buttons */
+.navbar-btn {
+  padding: 0.4rem 0.8rem !important;
+  font-size: 0.8rem !important;
+}
+
+@media (min-width: 576px) {
+  .navbar-btn {
+    padding: 0.4rem 1.2rem !important;
+    font-size: 0.85rem !important;
+  }
+}
+
+/* Responsive adjustments for Search User tab buttons */
+.search-user-tab-btn {
+  border: none !important;
+  border-radius: 50px !important;
+  padding: 0.35rem 0.8rem !important;
+  font-weight: 500 !important;
+  font-size: 0.75rem !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+  transition: all 0.2s ease-in-out !important;
+}
+
+@media (min-width: 576px) {
+  .search-user-tab-btn {
+    padding: 0.5rem 1.4rem !important;
+    font-size: 0.85rem !important;
+    gap: 6px !important;
+  }
+}
+
+/* Responsive Chat Header elements */
+.chat-header-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.chat-header-avatar-placeholder {
+  width: 40px;
+  height: 40px;
+  font-size: 1.1rem;
+}
+
+.chat-header-online-status {
+  width: 10px;
+  height: 10px;
+}
+
+.chat-header-title {
+  font-size: 1.1rem;
+}
+
+.chat-header-badge {
+  font-size: 0.65rem !important;
+  padding: 0.25em 0.6em !important;
+}
+
+.chat-header-userid {
+  color: var(--text-secondary);
+  font-size: 0.7rem;
+  background-color: var(--bg-main);
+  padding: 2px 8px;
+  border-radius: 12px;
+  border: 1px solid var(--accent-border);
+  letter-spacing: 0.3px;
+}
+
+@media (max-width: 575.98px) {
+  .chat-header-avatar {
+    width: 32px;
+    height: 32px;
+  }
+  .chat-header-avatar-placeholder {
+    width: 32px;
+    height: 32px;
+    font-size: 0.9rem;
+  }
+  .chat-header-online-status {
+    width: 8px;
+    height: 8px;
+  }
+  .chat-header-title {
+    font-size: 0.9rem !important;
+    max-width: 120px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .chat-header-badge {
+    font-size: 0.55rem !important;
+    padding: 0.2em 0.4em !important;
+  }
+  .chat-header-userid {
+    font-size: 0.6rem !important;
+    padding: 1px 6px !important;
+  }
+}

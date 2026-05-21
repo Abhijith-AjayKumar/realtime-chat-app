@@ -15,7 +15,7 @@ const NavBar = () => {
     return (
         <Navbar className="mb-4" style={{ backgroundColor: "var(--bg-surface)", height: "3.75rem" }}>
             <Container>
-                <h2>
+                <h2 className="fs-5 fs-sm-2 mb-0">
                     <Link to="/" className="link-light text-decoration-none">
                         ChatApp
                     </Link>
@@ -37,38 +37,44 @@ const NavBar = () => {
                                     variant={isMomentPage ? "primary" : "outline-primary"} 
                                     size="sm" 
                                     onClick={() => navigate(isMomentPage ? "/" : "/moment")}
+                                    className="navbar-btn"
                                     style={{ 
                                         color: isMomentPage ? "#ffffff" : "var(--accent-primary)", 
                                         borderColor: "var(--accent-primary)",
                                         backgroundColor: isMomentPage ? "var(--accent-primary)" : "transparent",
                                         borderRadius: "50px",
-                                        padding: "0.4rem 1.2rem",
-                                        fontSize: "0.85rem",
                                         fontWeight: "500",
                                         boxShadow: isMomentPage ? "0 0 14px rgba(126, 104, 86, 0.65)" : "0 0 8px rgba(126, 104, 86, 0.3)",
                                         transition: "all 0.3s ease-in-out"
                                     }}
                                 >
-                                    ✨ Moment
+                                    ✨ <span className="d-none d-sm-inline">Moment</span>
                                 </Button>
 
                                 <Button 
                                     variant={isProfilePage ? "primary" : "outline-primary"} 
                                     size="sm" 
                                     onClick={() => navigate(isProfilePage ? "/" : "/profile")}
+                                    className="navbar-btn"
                                     style={{ 
                                         color: isProfilePage ? "#ffffff" : "var(--accent-primary)", 
                                         borderColor: "var(--accent-primary)",
                                         backgroundColor: isProfilePage ? "var(--accent-primary)" : "transparent",
                                         borderRadius: "50px",
-                                        padding: "0.4rem 1.2rem",
-                                        fontSize: "0.85rem",
                                         fontWeight: "500",
                                         boxShadow: isProfilePage ? "0 0 14px rgba(126, 104, 86, 0.65)" : "0 0 8px rgba(126, 104, 86, 0.3)",
                                         transition: "all 0.3s ease-in-out"
                                     }}
                                 >
-                                    {isProfilePage ? "💬 Active Chats" : "👤 Profile"}
+                                    {isProfilePage ? (
+                                        <>
+                                            💬 <span className="d-none d-sm-inline">Active Chats</span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            👤 <span className="d-none d-sm-inline">Profile</span>
+                                        </>
+                                    )}
                                 </Button>
                             </>
                         )}

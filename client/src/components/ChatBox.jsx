@@ -160,8 +160,8 @@ const ChatBox = () => {
         <>
             <Stack gap={4} className="chat-container card-material p-3" style={{ height: "75vh", position: "relative" }}>
                 {/* --- HEADER --- */}
-                <div className="d-flex flex-wrap align-items-center justify-content-between pb-3 gap-3" style={{ borderBottom: "1px solid var(--accent-border)" }}>
-                    <div className="d-flex align-items-center gap-3">
+                <div className="d-flex flex-wrap align-items-center justify-content-between pb-2 pb-sm-3 gap-2 gap-sm-3" style={{ borderBottom: "1px solid var(--accent-border)" }}>
+                    <div className="d-flex align-items-center gap-2 gap-sm-3">
                         <Button 
                             variant="link" 
                             className="d-md-none p-0 text-white border-0 me-1" 
@@ -178,23 +178,23 @@ const ChatBox = () => {
                                 <img 
                                     src={recipient.profilePic} 
                                     alt="Avatar" 
-                                    style={{ width: "40px", height: "40px", borderRadius: "50%", objectFit: "cover" }} 
+                                    className="chat-header-avatar"
                                 />
                             ) : (
-                                <div className="d-flex justify-content-center align-items-center rounded-circle text-white fw-bold" style={{ width: "40px", height: "40px", backgroundColor: currentChat.isGroup ? "var(--accent-secondary)" : "var(--accent-primary)" }}>
+                                <div className="chat-header-avatar-placeholder d-flex justify-content-center align-items-center rounded-circle text-white fw-bold" style={{ backgroundColor: currentChat.isGroup ? "var(--accent-secondary)" : "var(--accent-primary)" }}>
                                     {currentChat.isGroup ? currentChat.groupName?.charAt(0).toUpperCase() : recipient?.name?.charAt(0).toUpperCase()}
                                 </div>
                             )}
                             {!currentChat.isGroup && (
-                                <span className="position-absolute bottom-0 end-0 rounded-circle" style={{ width: "10px", height: "10px", backgroundColor: isRecipientOnline ? "var(--online-indicator)" : "#64748b", border: "2px solid var(--bg-surface)" }} />
+                                <span className="position-absolute bottom-0 end-0 rounded-circle chat-header-online-status" style={{ backgroundColor: isRecipientOnline ? "var(--online-indicator)" : "#64748b", border: "2px solid var(--bg-surface)" }} />
                             )}
                         </div>
                         <div>
                             {/* Line 1: Just the Name and Admin Badges */}
-                            <div className="d-flex align-items-center flex-wrap">
-                                <h5 className="m-0 text-white fw-bold">{currentChat.isGroup ? currentChat.groupName : recipient?.name}</h5>
-                                {currentChat.isGroup && isMainAdmin && <Badge bg="danger" className="ms-2" style={{ fontSize: "0.65rem", padding: "0.25em 0.6em" }}>Admin</Badge>}
-                                {currentChat.isGroup && isSubAdmin && <Badge bg="warning" text="dark" className="ms-2 mt-1 mt-sm-0" style={{ fontSize: "0.65rem", padding: "0.25em 0.6em" }}>Sub-Admin</Badge>}
+                            <div className="d-flex align-items-center flex-wrap gap-1">
+                                <h5 className="m-0 text-white fw-bold chat-header-title">{currentChat.isGroup ? currentChat.groupName : recipient?.name}</h5>
+                                {currentChat.isGroup && isMainAdmin && <Badge bg="danger" className="chat-header-badge">Admin</Badge>}
+                                {currentChat.isGroup && isSubAdmin && <Badge bg="warning" text="dark" className="chat-header-badge">Sub-Admin</Badge>}
                             </div>
 
                             {/* Line 2: User ID Pill + Online Status */}
@@ -202,7 +202,7 @@ const ChatBox = () => {
                                 
                                 {/* 🔥 SLEEK UI: User ID styled as a modern dark pill */}
                                 {!currentChat.isGroup && recipient?.userId && (
-                                    <span style={{ color: "var(--text-secondary)", fontSize: "0.7rem", backgroundColor: "var(--bg-main)", padding: "2px 8px", borderRadius: "12px", border: "1px solid var(--accent-border)", letterSpacing: "0.3px" }}>
+                                    <span className="chat-header-userid">
                                         @{recipient.userId}
                                     </span>
                                 )}
@@ -226,21 +226,21 @@ const ChatBox = () => {
                             <>
                                 <Button 
                                     size="sm" 
-                                    className="rounded-pill px-3 py-1 text-nowrap d-flex align-items-center gap-1 btn-green-call-outline" 
+                                    className="d-none d-sm-inline-flex btn-responsive-action rounded-pill px-3 py-1 text-nowrap align-items-center gap-1 btn-green-call-outline" 
                                     style={{ fontSize: "0.8rem" }} 
                                     onClick={() => initiateCall(recipient._id, recipient.name, recipient.profilePic, true)}
                                 >
                                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
-                                    <span>Call</span>
+                                    <span className="d-none d-md-inline ms-1">Call</span>
                                 </Button>
                                 <Button 
                                     size="sm" 
-                                    className="rounded-pill px-3 py-1 text-nowrap d-flex align-items-center gap-1 btn-green-call-outline" 
+                                    className="d-none d-sm-inline-flex btn-responsive-action rounded-pill px-3 py-1 text-nowrap align-items-center gap-1 btn-green-call-outline" 
                                     style={{ fontSize: "0.8rem" }} 
                                     onClick={() => initiateCall(recipient._id, recipient.name, recipient.profilePic, false)}
                                 >
                                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>
-                                    <span>Video</span>
+                                    <span className="d-none d-md-inline ms-1">Video</span>
                                 </Button>
                                 <Dropdown align="end">
                                     <Dropdown.Toggle variant="link" className="dropdown-three-dots p-0 border-0">
@@ -251,6 +251,13 @@ const ChatBox = () => {
                                         </svg>
                                     </Dropdown.Toggle>
                                     <Dropdown.Menu variant="dark" style={{ backgroundColor: "var(--bg-surface)", border: "1px solid var(--accent-border)", fontSize: "0.85rem" }}>
+                                        <Dropdown.Item className="d-sm-none" onClick={() => initiateCall(recipient._id, recipient.name, recipient.profilePic, true)}>
+                                            📞 Voice Call
+                                        </Dropdown.Item>
+                                        <Dropdown.Item className="d-sm-none" onClick={() => initiateCall(recipient._id, recipient.name, recipient.profilePic, false)}>
+                                            📹 Video Call
+                                        </Dropdown.Item>
+                                        <Dropdown.Divider className="d-sm-none" style={{ borderColor: "var(--accent-border)" }} />
                                         <Dropdown.Item onClick={() => clearMessages(currentChat._id)}>🧹 Clear Log</Dropdown.Item>
                                         <Dropdown.Item className="text-danger" onClick={() => deleteChat(currentChat._id)}>💔 Unfriend</Dropdown.Item>
                                         <Dropdown.Item className="text-danger" onClick={() => toggleBlockUser(recipientId)}>
@@ -265,7 +272,7 @@ const ChatBox = () => {
                             <>
                                 <Button 
                                     size="sm" 
-                                    className="rounded-pill px-3 py-1 text-nowrap d-flex align-items-center gap-1 btn-green-call-outline" 
+                                    className="d-none d-sm-inline-flex btn-responsive-action rounded-pill px-3 py-1 text-nowrap align-items-center gap-1 btn-green-call-outline" 
                                     style={{ fontSize: "0.8rem" }} 
                                     onClick={() => {
                                         setGroupCallType("voice");
@@ -273,11 +280,11 @@ const ChatBox = () => {
                                     }}
                                 >
                                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
-                                    <span>Call</span>
+                                    <span className="d-none d-md-inline ms-1">Call</span>
                                 </Button>
                                 <Button 
                                     size="sm" 
-                                    className="rounded-pill px-3 py-1 text-nowrap d-flex align-items-center gap-1 btn-green-call-outline" 
+                                    className="d-none d-sm-inline-flex btn-responsive-action rounded-pill px-3 py-1 text-nowrap align-items-center gap-1 btn-green-call-outline" 
                                     style={{ fontSize: "0.8rem" }} 
                                     onClick={() => {
                                         setGroupCallType("video");
@@ -285,7 +292,7 @@ const ChatBox = () => {
                                     }}
                                 >
                                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>
-                                    <span>Video</span>
+                                    <span className="d-none d-md-inline ms-1">Video</span>
                                 </Button>
                                 <Dropdown align="end">
                                     <Dropdown.Toggle variant="link" className="dropdown-three-dots p-0 border-0">
@@ -296,6 +303,19 @@ const ChatBox = () => {
                                         </svg>
                                     </Dropdown.Toggle>
                                     <Dropdown.Menu variant="dark" style={{ backgroundColor: "var(--bg-surface)", border: "1px solid var(--accent-border)", fontSize: "0.85rem" }}>
+                                        <Dropdown.Item className="d-sm-none" onClick={() => {
+                                            setGroupCallType("voice");
+                                            setShowGroupCallModal(true);
+                                        }}>
+                                            📞 Start Group Voice Call
+                                        </Dropdown.Item>
+                                        <Dropdown.Item className="d-sm-none" onClick={() => {
+                                            setGroupCallType("video");
+                                            setShowGroupCallModal(true);
+                                        }}>
+                                            📹 Start Group Video Call
+                                        </Dropdown.Item>
+                                        <Dropdown.Divider className="d-sm-none" style={{ borderColor: "var(--accent-border)" }} />
                                         <Dropdown.Item onClick={() => clearMessages(currentChat._id)}>🧹 Clear Log</Dropdown.Item>
                                         {(canAddMembers || isMainAdmin || isSubAdmin) && <Dropdown.Divider style={{ borderColor: "var(--accent-border)" }} />}
                                         {canAddMembers && <Dropdown.Item onClick={() => openManageModal("add")}>➕ Add Member</Dropdown.Item>}
@@ -368,9 +388,9 @@ const ChatBox = () => {
                                                 })()}
                                             </div>
                                         )}
-                                        <div className="px-3 py-2 text-white shadow-sm" style={{ backgroundColor: isMyMessage ? "var(--accent-primary)" : "var(--silt)", borderRadius: isMyMessage ? "20px 20px 4px 20px" : "20px 20px 20px 4px", fontSize: "0.95rem", width: "fit-content", wordBreak: "break-word" }}>
+                                        <div className="px-3 py-2 text-white shadow-sm" style={{ backgroundColor: isMyMessage ? "var(--accent-primary)" : "var(--silt)", borderRadius: isMyMessage ? "20px 20px 4px 20px" : "20px 20px 20px 4px", fontSize: "var(--chat-font-size, 0.95rem)", width: "fit-content", wordBreak: "break-word" }}>
                                             {currentChat.isGroup && !isMyMessage && (
-                                                <div style={{ fontSize: "0.7rem", color: "var(--accent-primary)", fontWeight: "bold", marginBottom: "2px" }}>
+                                                <div style={{ fontSize: "var(--chat-timestamp-size, 0.7rem)", color: "var(--accent-primary)", fontWeight: "bold", marginBottom: "2px" }}>
                                                     {allUsers?.find(u => u._id === msg.senderId)?.name || "User"}
                                                 </div>
                                             )}
@@ -414,7 +434,7 @@ const ChatBox = () => {
                                                 </div>
                                             )}
                                             {msg.text && <span>{msg.text}</span>}
-                                            <div className="d-flex align-items-center gap-1 mt-1" style={{ fontSize: "0.7rem", opacity: 0.75, justifyContent: isMyMessage ? "flex-end" : "flex-start" }}>
+                                            <div className="d-flex align-items-center gap-1 mt-1" style={{ fontSize: "var(--chat-timestamp-size, 0.7rem)", opacity: 0.75, justifyContent: isMyMessage ? "flex-end" : "flex-start" }}>
                                                 <span>{moment(msg.createdAt).format("h:mm A")}</span>
                                                 {isMyMessage && (
                                                     <MessageStatusTick isRead={isMessageRead} isDelivered={isMessageDelivered} />
@@ -465,7 +485,7 @@ const ChatBox = () => {
                             disabled={isUserCurrentlyBlocked} 
                             onClick={() => fileInputRef.current?.click()}
                             className="rounded-circle d-flex justify-content-center align-items-center" 
-                            style={{ width: "44px", height: "44px", backgroundColor: "transparent", color: "var(--accent-primary)", border: "1px solid var(--accent-border)" }}
+                            style={{ width: "var(--input-btn-size, 44px)", height: "var(--input-btn-size, 44px)", backgroundColor: "transparent", color: "var(--accent-primary)", border: "1px solid var(--accent-border)", flexShrink: 0 }}
                         >
                             📎
                         </Button>
@@ -475,9 +495,9 @@ const ChatBox = () => {
                             disabled={isUserCurrentlyBlocked}
                             value={textMessage}
                             onChange={(e) => setTextMessage(e.target.value)}
-                            style={{ backgroundColor: "var(--bg-main)", color: "var(--text-primary)", borderColor: "var(--accent-border)", borderRadius: "50px", padding: "0.65rem 1.4rem" }}
+                            style={{ backgroundColor: "var(--bg-main)", color: "var(--text-primary)", borderColor: "var(--accent-border)", borderRadius: "50px", padding: "var(--input-padding, 0.65rem 1.4rem)" }}
                         />
-                        <Button type="submit" disabled={isUserCurrentlyBlocked} className="rounded-circle d-flex justify-content-center align-items-center" style={{ width: "44px", height: "44px", backgroundColor: "var(--accent-primary)", border: "none" }}>➔</Button>
+                        <Button type="submit" disabled={isUserCurrentlyBlocked} className="rounded-circle d-flex justify-content-center align-items-center" style={{ width: "var(--input-btn-size, 44px)", height: "var(--input-btn-size, 44px)", backgroundColor: "var(--accent-primary)", border: "none", flexShrink: 0 }}>➔</Button>
                     </Stack>
                 </Form>
             </Stack>
