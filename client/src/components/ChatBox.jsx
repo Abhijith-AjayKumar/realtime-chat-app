@@ -4,6 +4,7 @@ import { ChatContext } from "../context/ChatContext";
 import { CallContext } from "../context/CallContext";
 import { Stack, Form, Button, Dropdown, Badge, Modal } from "react-bootstrap";
 import moment from "moment";
+import AudioPlayer from "./AudioPlayer";
 
 const MessageStatusTick = ({ isRead, isDelivered }) => {
     if (isRead) {
@@ -500,13 +501,8 @@ const ChatBox = () => {
                                                         />
                                                     )}
                                                     {msg.fileType === "audio" && (
-                                                         <div className="audio-bubble-container" style={{ width: "240px", maxWidth: "100%" }}>
-                                                             <audio 
-                                                                 src={msg.fileData} 
-                                                                 controls 
-                                                                 className="audio-message-player"
-                                                                 style={{ width: "100%", height: "36px" }} 
-                                                             />
+                                                         <div className="audio-bubble-container">
+                                                             <AudioPlayer src={msg.fileData} />
                                                          </div>
                                                      )}
                                                     {msg.fileType === "file" && (
@@ -566,7 +562,7 @@ const ChatBox = () => {
                         </div>
                     )}
                     {isRecording ? (
-                        <Stack direction="horizontal" gap={2} className="w-100 p-1 rounded-pill align-items-center" style={{ backgroundColor: "var(--bg-main)", border: "1px solid var(--accent-border)", height: "var(--input-btn-size, 44px)" }}>
+                        <Stack direction="horizontal" className="chat-input-row w-100 p-1 rounded-pill align-items-center" style={{ backgroundColor: "var(--bg-main)", border: "1px solid var(--accent-border)", height: "var(--input-btn-size, 44px)" }}>
                             <div className="d-flex align-items-center gap-2 flex-grow-1 ps-3">
                                 <span className="recording-pulse-dot" style={{ display: "inline-block", width: "10px", height: "10px", borderRadius: "50%", backgroundColor: "var(--accent-danger)" }}></span>
                                 <span className="text-white" style={{ fontSize: "0.9rem" }}>Recording {formatDuration(recordingTime)}</span>
@@ -590,7 +586,7 @@ const ChatBox = () => {
                             </Button>
                         </Stack>
                     ) : (
-                        <Stack direction="horizontal" gap={2}>
+                        <Stack direction="horizontal" className="chat-input-row">
                             <input 
                                 type="file" 
                                 ref={fileInputRef} 
